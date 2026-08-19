@@ -132,7 +132,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeCoupon = () => {
     setAppliedCoupon(null);
     setCouponError(null);
-    fetch('/api/cart/remove-coupon', { method: 'POST' }).catch(() => undefined);
     toast.message('Coupon removed');
   };
 
