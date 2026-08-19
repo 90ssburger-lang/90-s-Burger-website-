@@ -15,7 +15,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = getSupabaseAdminClient();
     const { data, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !data.user) { res.status(401).json({ error: 'Invalid or expired session' }); return; }
+    if (authError || !data.user) {
+      console.error('Account deletion token validation failed:', authError?.message);
+      res.status(401).json({ error: authError?.message || 'Invalid or expired session' });
+      return;
+    }
 
     // Deleting auth.users cascades to profiles. Order and analytics references are
     // configured ON DELETE SET NULL so business history remains intact.
