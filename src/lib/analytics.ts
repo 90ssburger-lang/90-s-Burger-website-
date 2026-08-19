@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SESSION_ID_KEY = "90s_burger_session_id";
 const SESSION_LAST_SEEN_KEY = "90s_burger_session_last_seen";
+const SESSION_STARTED_AT_KEY = "90s_burger_session_started_at";
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 type MetaEvent = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase';
@@ -60,7 +61,7 @@ const recordSession = async (payload: SessionTrackingPayload) => {
   try {
     const { error } = await supabase
       .from("analytics_sessions")
-      .upsert(payload, { onConflict: "session_id", ignoreDuplicates: true });
+      .upsert(payload, { onConflict: "session_id" });
 
     if (error) {
       console.warn("Analytics session insert failed", error.message);
@@ -84,15 +85,16 @@ const ensureSession = (options?: { userId?: string | null; path?: string }) => {
   if (isExpired) {
     sessionId = generateSessionId();
     storage.setItem(SESSION_ID_KEY, sessionId);
+    storage.setItem(SESSION_STARTED_AT_KEY, new Date(now).toISOString());
   }
 
   storage.setItem(SESSION_LAST_SEEN_KEY, String(now));
 
-  if (isExpired && sessionId) {
+  if (sessionId) {
     void recordSession({
       session_id: sessionId,
       user_id: options?.userId ?? null,
-      started_at: new Date(now).toISOString(),
+      started_at: storage.getItem(SESSION_STARTED_AT_KEY) || new Date(now).toISOString(),
       last_seen_at: new Date(now).toISOString(),
       path: options?.path ?? `${window.location.pathname}${window.location.search}`,
       referrer: document.referrer || null,

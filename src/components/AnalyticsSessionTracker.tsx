@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { trackMetaPageView, trackSession } from "@/lib/analytics";
+import { trackEvent, trackMetaPageView, trackSession } from "@/lib/analytics";
 
 export function AnalyticsSessionTracker() {
   const location = useLocation();
@@ -13,6 +13,11 @@ export function AnalyticsSessionTracker() {
       path: `${location.pathname}${location.search}`,
     });
     trackMetaPageView();
+    trackEvent("page_view", {
+      userId: user?.id ?? null,
+      path: `${location.pathname}${location.search}`,
+      metadata: { title: document.title },
+    });
   }, [location.pathname, location.search, user?.id]);
 
   return null;
