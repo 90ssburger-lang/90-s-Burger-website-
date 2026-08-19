@@ -39,7 +39,9 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-[2rem] border border-[#00c8f0]/45 bg-[#fbf8ff] p-2 shadow-[0_32px_80px_-30px_rgba(0,0,0,.85)] sm:p-3">
             <img
               className="block h-auto w-full rounded-[1.35rem] object-contain"
-              src="/images/burger-exploded-guide.png"
+              src="/images/burger-exploded-guide-640.png"
+              width="640"
+              height="853"
               alt="Exploded double burger showing brioche buns, onions, tomatoes, cheddar cheese, lettuce, and premium beef patties"
               fetchPriority="high"
               decoding="async"

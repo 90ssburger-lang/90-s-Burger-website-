@@ -1,2 +1,15 @@
 import { Link } from 'react-router-dom';
-export function Footer(){return <footer className="bg-[#0d0914] text-[#f8f5ff]"><div className="container mx-auto grid gap-10 px-4 py-14 md:grid-cols-3"><div><img src="/images/90s-burger-neon-logo.png" alt="90's Burger" className="h-32 w-32 rounded-2xl object-cover shadow-[0_0_35px_rgba(240,0,143,.18)]"/><p className="mt-4 max-w-sm text-sm text-white/60">Good food, loud flavor, zero fuss. Fresh burgers delivered hot.</p></div><div><h4 className="font-black uppercase text-[#00c8f0]">Menu</h4><div className="mt-4 grid gap-2 text-sm text-white/70"><Link to="/shop?category=beef-burgers">Beef Burgers</Link><Link to="/shop?category=chicken-burgers">Chicken Burgers</Link><Link to="/shop?category=sides">Sides</Link><Link to="/shop?category=drinks">Drinks</Link></div></div><div><h4 className="font-black uppercase text-[#00c8f0]">Need help?</h4><p className="mt-4 text-sm text-white/70">Call us for order support and delivery questions.</p></div></div><div className="border-t border-white/10 px-4 py-5 text-center text-xs text-white/50">© {new Date().getFullYear()} 90's Burger. Made fresh.</div></footer>}
+
+export function Footer() {
+  return <footer className="bg-[#0d0914] text-[#f8f5ff]">
+    <div className="container mx-auto grid gap-10 px-4 py-14 md:grid-cols-3">
+      <div>
+        <img src="/images/90s-burger-neon-logo-128.png" width="128" height="128" loading="lazy" alt="90's Burger" className="h-32 w-32 rounded-2xl object-cover shadow-[0_0_35px_rgba(240,0,143,.18)]" />
+        <p className="mt-4 max-w-sm text-sm text-white/60">Good food, loud flavor, zero fuss. Fresh burgers delivered hot.</p>
+      </div>
+      <div><h4 className="font-black uppercase text-[#00c8f0]">Menu</h4><div className="mt-4 grid gap-2 text-sm text-white/70"><Link to="/shop?category=beef-burgers">Beef Burgers</Link><Link to="/shop?category=chicken-burgers">Chicken Burgers</Link><Link to="/shop?category=sides">Sides</Link><Link to="/shop?category=drinks">Drinks</Link></div></div>
+      <div><h4 className="font-black uppercase text-[#00c8f0]">Need help?</h4><p className="mt-4 text-sm text-white/70">Call us for order support and delivery questions.</p></div>
+    </div>
+    <div className="border-t border-white/10 px-4 py-5 text-center text-xs text-white/50">© {new Date().getFullYear()} 90's Burger. Made fresh.</div>
+  </footer>;
+}

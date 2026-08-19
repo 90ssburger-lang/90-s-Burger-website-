@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,89 +10,40 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { AnalyticsSessionTracker } from "@/components/AnalyticsSessionTracker";
 import { AuthProvider as SupabaseAuthProvider } from "@/auth/AuthContext";
 import { ProtectedRoute } from "@/auth/ProtectedRoute";
-import { supabase } from "@/lib/supabase";
 
 // User pages
 import HomePage from "./pages/HomePage";
-import ShopPage from "./pages/ShopPage";
-import ProductPage from "./pages/ProductPage";
-import CartPage from "./pages/CartPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrdersPage from "./pages/OrdersPage";
-import OrderInvoicePage from "./pages/OrderInvoicePage";
-import PaymentResultPage from "./pages/PaymentResultPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsPage from "./pages/TermsPage";
-import AuthPage from "./pages/AuthPage";
-import ProfilePage from "./pages/ProfilePage";
-import Dashboard from "./pages/Dashboard";
-import NotFound from "./pages/NotFound";
+const ShopPage = lazy(() => import("./pages/ShopPage"));
+const ProductPage = lazy(() => import("./pages/ProductPage"));
+const CartPage = lazy(() => import("./pages/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const OrderInvoicePage = lazy(() => import("./pages/OrderInvoicePage"));
+const PaymentResultPage = lazy(() => import("./pages/PaymentResultPage"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import AdminProductsPage from "./pages/admin/AdminProductsPage";
-import AdminOrdersPage from "./pages/admin/AdminOrdersPage";
-import AdminOrderDetailsPage from "./pages/admin/AdminOrderDetailsPage";
-import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
-import AdminCouponsPage from "./pages/admin/AdminCouponsPage";
-import AdminCouponDetailsPage from "./pages/admin/AdminCouponDetailsPage";
-import AdminDeliveryZonesPage from "./pages/admin/AdminDeliveryZonesPage";
-import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
-import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
-import AdminCreateOrderPage from "./pages/admin/AdminCreateOrderPage";
+const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
+const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
+const AdminOrderDetailsPage = lazy(() => import("./pages/admin/AdminOrderDetailsPage"));
+const AdminCategoriesPage = lazy(() => import("./pages/admin/AdminCategoriesPage"));
+const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
+const AdminCouponDetailsPage = lazy(() => import("./pages/admin/AdminCouponDetailsPage"));
+const AdminDeliveryZonesPage = lazy(() => import("./pages/admin/AdminDeliveryZonesPage"));
+const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
+const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage"));
+const AdminCreateOrderPage = lazy(() => import("./pages/admin/AdminCreateOrderPage"));
 
 const queryClient = new QueryClient();
 
 function HomeRouteGate() {
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    supabase.auth
-      .getSession()
-      .then(({ data, error }) => {
-        if (!isMounted) {
-          return;
-        }
-
-        if (error) {
-          setIsAuthenticated(false);
-          setCheckingSession(false);
-          return;
-        }
-
-        setIsAuthenticated(Boolean(data.session?.user));
-        setCheckingSession(false);
-      })
-      .catch(() => {
-        if (!isMounted) {
-          return;
-        }
-
-        setIsAuthenticated(false);
-        setCheckingSession(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (checkingSession) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <p className="text-sm text-slate-600">Loading...</p>
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <HomePage />;
-  }
-
   return <HomePage />;
 }
 
@@ -107,7 +58,7 @@ const App = () => (
               <BrowserRouter>
                 <AnalyticsSessionTracker />
                 <ScrollToTop />
-                <Routes>
+                <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground">Loading…</div>}><Routes>
                   {/* User Routes */}
                   <Route path="/" element={<HomeRouteGate />} />
                   <Route path="/shop" element={<ShopPage />} />
@@ -161,7 +112,7 @@ const App = () => (
                   <Route path="/admin/delivery-zones" element={<AdminDeliveryZonesPage />} />
 
                   <Route path="*" element={<NotFound />} />
-                </Routes>
+                </Routes></Suspense>
               </BrowserRouter>
             </TooltipProvider>
           </FavoritesProvider>
