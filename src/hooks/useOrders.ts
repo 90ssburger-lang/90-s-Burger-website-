@@ -114,6 +114,7 @@ export function useCreateOrder() {
       deliveryZoneId?: string;
       couponCode?: string | null;
       items?: Array<{ product_id: string; quantity: number; selected_addon_ids?: string[] }>;
+      customerUserId?: string | null;
     }) => {
       const payloadItems =
         orderData.items ??
@@ -145,6 +146,7 @@ export function useCreateOrder() {
         },
         body: JSON.stringify({
           orderId: orderData.orderId,
+          customerUserId: orderData.customerUserId,
           customerEmail: orderData.customerEmail,
           customerName: orderData.customerName,
           notes: orderData.notes ?? null,

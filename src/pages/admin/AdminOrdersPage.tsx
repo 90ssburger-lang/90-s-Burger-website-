@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { OrderStatus } from '@/types';
@@ -172,6 +172,7 @@ export default function AdminOrdersPage() {
             <h1 className="font-display text-2xl font-bold">Orders</h1>
             <p className="text-muted-foreground">Manage customer orders</p>
           </div>
+          <Button onClick={() => navigate('/admin/orders/new')}><Plus className="mr-2 h-4 w-4" />Create order</Button>
         </div>
 
         {/* Filters */}

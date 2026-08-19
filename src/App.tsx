@@ -39,6 +39,8 @@ import AdminCouponsPage from "./pages/admin/AdminCouponsPage";
 import AdminCouponDetailsPage from "./pages/admin/AdminCouponDetailsPage";
 import AdminDeliveryZonesPage from "./pages/admin/AdminDeliveryZonesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminCustomersPage from "./pages/admin/AdminCustomersPage";
+import AdminCreateOrderPage from "./pages/admin/AdminCreateOrderPage";
 
 const queryClient = new QueryClient();
 
@@ -148,6 +150,8 @@ const App = () => (
                   {/* Admin Routes */}
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+                  <Route path="/admin/customers" element={<AdminCustomersPage />} />
+                  <Route path="/admin/orders/new" element={<AdminCreateOrderPage />} />
                   <Route path="/admin/products" element={<AdminProductsPage />} />
                   <Route path="/admin/orders" element={<AdminOrdersPage />} />
                   <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />

@@ -6,6 +6,7 @@ import { validateCoupon, type CartItemInput } from "../_lib/coupons.js";
 const roundCurrency = (value: number) => Math.round(value * 100) / 100;
 
 type CreateOrderBody = {
+  customerUserId?: string | null;
   orderId?: string;
   customerEmail: string;
   customerName: string;
@@ -84,7 +85,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = getSupabaseAdminClient();
     const { user } = await getUserFromRequest(req);
-    const userId = user?.id ?? null;
+    let userId = user?.id ?? null;
+    if (Object.prototype.hasOwnProperty.call(body, "customerUserId")) {
+      if (!user) {
+        res.status(401).json({ error: "Authentication required" });
+        return;
+      }
+      const { data: staffProfile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!staffProfile || !["admin", "manager"].includes(staffProfile.role)) {
+        res.status(403).json({ error: "Only staff can create orders for customers" });
+        return;
+      }
+      userId = body.customerUserId || null;
+    }
 
     if (body.orderId) {
       const { data: existing, error: existingError } = await supabase
