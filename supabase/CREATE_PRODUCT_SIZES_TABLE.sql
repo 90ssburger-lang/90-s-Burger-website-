@@ -30,8 +30,8 @@ CREATE POLICY "Staff can manage product sizes"
   ON public.product_sizes FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE user_id = auth.uid()
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
       AND role IN ('admin', 'manager')
     )
   );
