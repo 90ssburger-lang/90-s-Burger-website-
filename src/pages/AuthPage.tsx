@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
 
@@ -10,7 +10,10 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { user, loading, signIn, signUp } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isPasswordRecovery = searchParams.get('reset') === '1';
+  const { user, loading, profile, signIn, signUp, resetPassword } = useAuth();
 
   const [tab, setTab] = useState<AuthTab>("signin");
   const [email, setEmail] = useState("");
@@ -20,12 +23,15 @@ export default function AuthPage() {
   const [loadingAction, setLoadingAction] = useState<LoadingAction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [forgotMode, setForgotMode] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate("/", { replace: true });
+    if (!loading && user && !isPasswordRecovery) {
+      const requested = (location.state as { from?: { pathname?: string } | string } | null)?.from;
+      const requestedPath = typeof requested === 'string' ? requested : requested?.pathname;
+      navigate(requestedPath || (profile?.role === 'admin' || profile?.role === 'manager' ? '/admin' : '/'), { replace: true });
     }
-  }, [loading, user, navigate]);
+  }, [loading, user, profile?.role, navigate, location.state, isPasswordRecovery]);
 
   const isBusy = loading || loadingAction !== null;
 
@@ -89,6 +95,24 @@ export default function AuthPage() {
     event.preventDefault();
     clearMessages();
 
+    if (forgotMode) {
+      if (!EMAIL_REGEX.test(email.trim())) { setError('Enter a valid email address.'); return; }
+      setLoadingAction('signin');
+      const { error: resetError } = await resetPassword(email);
+      setLoadingAction(null);
+      if (resetError) setError(resetError); else setInfo('Password reset email sent. Check your inbox and spam folder.');
+      return;
+    }
+
+    if (isPasswordRecovery) {
+      if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+      setLoadingAction('signin');
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      setLoadingAction(null);
+      if (updateError) setError(updateError.message); else { setInfo('Password updated. Redirecting…'); window.setTimeout(()=>navigate(profile?.role === 'admin' || profile?.role === 'manager' ? '/admin' : '/', {replace:true}),800); }
+      return;
+    }
+
     const validationError = validateForm();
 
     if (validationError) {
@@ -116,7 +140,7 @@ export default function AuthPage() {
     }
 
     setLoadingAction("signin");
-    const { error: signInError } = await signIn(email.trim(), password);
+    const { error: signInError, role } = await signIn(email.trim(), password);
     setLoadingAction(null);
 
     if (signInError) {
@@ -124,16 +148,18 @@ export default function AuthPage() {
       return;
     }
 
-    navigate("/", { replace: true });
+    const requested = (location.state as { from?: { pathname?: string } | string } | null)?.from;
+    const requestedPath = typeof requested === 'string' ? requested : requested?.pathname;
+    navigate(requestedPath || (role === 'admin' || role === 'manager' ? '/admin' : '/'), { replace: true });
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <h1 className="text-2xl font-semibold text-slate-900">{tab === "signin" ? "Sign in" : "Sign up"}</h1>
-        <p className="mt-1 text-sm text-slate-600">Use Google or your email and password.</p>
+        <h1 className="text-2xl font-semibold text-slate-900">{isPasswordRecovery ? 'Set new password' : forgotMode ? 'Reset password' : tab === "signin" ? "Sign in" : "Sign up"}</h1>
+        <p className="mt-1 text-sm text-slate-600">{isPasswordRecovery ? 'Enter a secure new password.' : forgotMode ? 'We will email you a secure reset link.' : 'Use Google or your email and password.'}</p>
 
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+        {!forgotMode && !isPasswordRecovery && <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1" role="tablist">
           <button
             type="button"
             className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
@@ -160,22 +186,22 @@ export default function AuthPage() {
           >
             Sign up
           </button>
-        </div>
+        </div>}
 
-        <button
+        {!forgotMode && !isPasswordRecovery && <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isBusy}
           className="mt-4 flex w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loadingAction === "google" ? "Redirecting..." : "Continue with Google"}
-        </button>
+        </button>}
 
-        <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
+        {!forgotMode && !isPasswordRecovery && <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wide text-slate-400">
           <span className="h-px flex-1 bg-slate-200" />
           <span>or</span>
           <span className="h-px flex-1 bg-slate-200" />
-        </div>
+        </div>}
 
         {error && (
           <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
@@ -190,7 +216,7 @@ export default function AuthPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          {!isPasswordRecovery && <div>
             <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
               Email
             </label>
@@ -205,9 +231,9 @@ export default function AuthPage() {
               required
               disabled={isBusy}
             />
-          </div>
+          </div>}
 
-          <div>
+          {!forgotMode && <div>
             <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
               Password
             </label>
@@ -232,9 +258,9 @@ export default function AuthPage() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-          </div>
+          </div>}
 
-          {tab === "signup" && (
+          {tab === "signup" && !forgotMode && !isPasswordRecovery && (
             <div>
               <label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-medium text-slate-700">
                 Confirm password
@@ -258,10 +284,11 @@ export default function AuthPage() {
             disabled={isBusy}
             className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loadingAction === "signin" && "Signing in..."}
+            {loadingAction === "signin" && (forgotMode ? 'Sending…' : isPasswordRecovery ? 'Updating…' : "Signing in...")}
             {loadingAction === "signup" && "Creating account..."}
-            {!loadingAction && (tab === "signin" ? "Sign in" : "Create account")}
+            {!loadingAction && (forgotMode ? 'Send reset link' : isPasswordRecovery ? 'Update password' : tab === "signin" ? "Sign in" : "Create account")}
           </button>
+          {tab === 'signin' && !isPasswordRecovery && <button type="button" onClick={()=>{setForgotMode(!forgotMode);clearMessages()}} className="w-full text-sm font-medium text-slate-600 hover:text-slate-900">{forgotMode ? 'Back to sign in' : 'Forgot password?'}</button>}
         </form>
       </div>
     </div>

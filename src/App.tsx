@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider as LegacyAuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -95,7 +94,6 @@ function HomeRouteGate() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SupabaseAuthProvider>
-      <LegacyAuthProvider>
         <CartProvider>
           <FavoritesProvider>
             <TooltipProvider>
@@ -158,7 +156,6 @@ const App = () => (
             </TooltipProvider>
           </FavoritesProvider>
         </CartProvider>
-      </LegacyAuthProvider>
     </SupabaseAuthProvider>
   </QueryClientProvider>
 );
