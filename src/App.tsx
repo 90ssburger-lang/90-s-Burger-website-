@@ -25,6 +25,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsPage from "./pages/TermsPage";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +112,7 @@ const App = () => (
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/payment-result" element={<PaymentResultPage />} />
                   <Route path="/login" element={<AuthPage />} />
+                  <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                   <Route path="/auth" element={<Navigate to="/login" replace />} />
                   <Route path="/auth/callback" element={<Navigate to="/" replace />} />
                   <Route
