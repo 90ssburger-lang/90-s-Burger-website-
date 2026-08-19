@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react';
-import { Product, CartItem, AppliedCoupon } from '@/types';
+import { Product, CartItem, AppliedCoupon, ProductAddon } from '@/types';
 import { toast } from 'sonner';
 import { trackEvent } from '@/lib/analytics';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number, size?: string, color?: string) => void;
-  removeItem: (productId: string, size?: string, color?: string) => void;
-  updateQuantity: (productId: string, quantity: number, size?: string, color?: string) => void;
+  addItem: (product: Product, quantity?: number, addons?: ProductAddon[]) => void;
+  removeItem: (productId: string, addons?: ProductAddon[]) => void;
+  updateQuantity: (productId: string, quantity: number, addons?: ProductAddon[]) => void;
   clearCart: () => void;
   itemCount: number;
   subtotal: number;
@@ -26,12 +26,12 @@ const CART_STORAGE_KEY = '90s-burger-cart';
 const COUPON_STORAGE_KEY = '90s-burger-cart-coupon';
 
 // Helper to create a unique key for cart items (product + size + color)
-const getCartItemKey = (productId: string, size?: string, color?: string) =>
-  `${productId}::${size ?? 'nosize'}::${color ?? 'nocolor'}`;
+const getCartItemKey = (productId: string, addons: ProductAddon[] = []) =>
+  `${productId}::${addons.map(a=>a.id).sort().join(',') || 'noaddons'}`;
 
 const buildItemsSignature = (items: CartItem[]) =>
   items
-    .map((item) => `${getCartItemKey(item.product.id, item.size, item.color)}::${item.quantity}`)
+    .map((item) => `${getCartItemKey(item.product.id, item.addons)}::${item.quantity}`)
     .sort()
     .join('|');
 
@@ -181,56 +181,56 @@ export function CartProvider({ children }: { children: ReactNode }) {
     revalidate();
   }, [appliedCoupon, validationKey, items, token]);
 
-  const addItem = (product: Product, quantity = 1, size?: string, color?: string) => {
+  const addItem = (product: Product, quantity = 1, addons: ProductAddon[] = []) => {
     trackEvent('add_to_cart', { productId: product.id });
     setItems(prev => {
       // Find existing item with same product AND size
       const existingItem = prev.find(
-        item => item.product.id === product.id && item.size === size && item.color === color
+        item => getCartItemKey(item.product.id,item.addons) === getCartItemKey(product.id,addons)
       );
       
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
-        const label = [size, color].filter(Boolean).join(', ');
+        const label = addons.map(a=>a.name).join(', ');
         
         toast.success(`Updated ${product.name}${label ? ` (${label})` : ''} quantity`);
         return prev.map(item =>
-          item.product.id === product.id && item.size === size && item.color === color
+          getCartItemKey(item.product.id,item.addons) === getCartItemKey(product.id,addons)
             ? { ...item, quantity: newQuantity }
             : item
         );
       }
 
-      const label = [size, color].filter(Boolean).join(', ');
+      const label = addons.map(a=>a.name).join(', ');
       toast.success(`Added ${product.name}${label ? ` (${label})` : ''} to cart`);
-      return [...prev, { product, quantity, size, color }];
+      return [...prev, { product, quantity, addons }];
     });
   };
 
-  const removeItem = (productId: string, size?: string, color?: string) => {
+  const removeItem = (productId: string, addons: ProductAddon[] = []) => {
     setItems(prev => {
       const item = prev.find(
-        i => i.product.id === productId && i.size === size && i.color === color
+        i => getCartItemKey(i.product.id,i.addons) === getCartItemKey(productId,addons)
       );
       if (item) {
-        const label = [size, color].filter(Boolean).join(', ');
+        const label = addons.map(a=>a.name).join(', ');
         toast.success(`Removed ${item.product.name}${label ? ` (${label})` : ''} from cart`);
       }
       return prev.filter(
-        item => !(item.product.id === productId && item.size === size && item.color === color)
+        item => getCartItemKey(item.product.id,item.addons) !== getCartItemKey(productId,addons)
       );
     });
   };
 
-  const updateQuantity = (productId: string, quantity: number, size?: string, color?: string) => {
+  const updateQuantity = (productId: string, quantity: number, addons: ProductAddon[] = []) => {
     if (quantity < 1) {
-      removeItem(productId, size, color);
+      removeItem(productId, addons);
       return;
     }
 
     setItems(prev => {
       return prev.map(item =>
-        item.product.id === productId && item.size === size && item.color === color
+        getCartItemKey(item.product.id,item.addons) === getCartItemKey(productId,addons)
           ? { ...item, quantity }
           : item
       );
@@ -245,7 +245,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.product.price + (item.addons||[]).reduce((s,a)=>s+Number(a.price),0)) * item.quantity, 0);
   const discount = appliedCoupon?.discount_amount ?? 0;
 
   return (

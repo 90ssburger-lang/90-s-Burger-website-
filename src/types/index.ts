@@ -55,6 +55,15 @@ export interface Product {
   sizes?: ProductSize[];
 }
 
+export interface ProductAddon {
+  id: string;
+  product_id: string;
+  name: string;
+  price: number;
+  is_enabled: boolean;
+  sort_order: number;
+}
+
 export interface Order {
   id: string;
   user_id: string | null;
@@ -107,8 +116,8 @@ export interface Address {
 export interface CartItem {
   product: Product;
   quantity: number;
-  size?: string;
-  color?: string;
+  addons?: ProductAddon[];
+  makeCombo?: boolean;
 }
 
 export interface Coupon {

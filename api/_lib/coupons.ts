@@ -24,6 +24,7 @@ export type CouponRow = {
 export type CartItemInput = {
   product_id: string;
   quantity: number;
+  selected_addon_ids?: string[];
 };
 
 export type CartSnapshotItem = {

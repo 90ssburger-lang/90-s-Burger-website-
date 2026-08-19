@@ -112,13 +112,14 @@ export function useCreateOrder() {
       orderId?: string;
       shippingCost?: number;
       couponCode?: string | null;
-      items?: Array<{ product_id: string; quantity: number }>;
+      items?: Array<{ product_id: string; quantity: number; selected_addon_ids?: string[] }>;
     }) => {
       const payloadItems =
         orderData.items ??
         items.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
+          selected_addon_ids: (item.addons || []).map((addon) => addon.id),
         }));
 
       const fallbackShippingCost = (() => {

@@ -14,19 +14,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Product } from '@/types';
 import { useCategories } from '@/hooks/useCategories';
 import { useCreateProduct, useUpdateProduct } from '@/hooks/useProducts';
-import { useProductSizes, useBulkUpdateProductSizes } from '@/hooks/useProductSizes';
+import { useProductAddons, useReplaceProductAddons } from '@/hooks/useProductAddons';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
-const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL'];
-
-interface SizeRow {
-  size: string;
-  stock: number;
+interface AddonRow {
+  name: string;
+  price: number;
   is_enabled: boolean;
 }
 
@@ -66,15 +64,13 @@ interface ProductFormProps {
 export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) {
   const isEditing = !!product;
   const { data: categories = [] } = useCategories();
-  const { data: existingSizes = [] } = useProductSizes(product?.id);
+  const { data: existingAddons = [] } = useProductAddons(product?.id);
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
-  const bulkUpdateSizes = useBulkUpdateProductSizes();
+  const replaceAddons = useReplaceProductAddons();
 
   const [autoSlug, setAutoSlug] = useState(true);
-  const [sizeRows, setSizeRows] = useState<SizeRow[]>(() =>
-    DEFAULT_SIZES.map((size) => ({ size, stock: 0, is_enabled: true }))
-  );
+  const [addonRows, setAddonRows] = useState<AddonRow[]>([]);
   const [images, setImages] = useState<string[]>([]);
   const [imageInput, setImageInput] = useState('');
   const [colors, setColors] = useState<string[]>([]);
@@ -122,25 +118,14 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     }
   }, [product, form]);
 
-  // Sync size rows only when product changes (avoid overwriting user input on refetch)
+  // Sync restaurant add-ons only when the product changes.
   useEffect(() => {
     const productKey = product?.id ?? 'create';
     if (lastSyncedProductIdRef.current === productKey) return;
     lastSyncedProductIdRef.current = productKey;
 
-    if (isEditing && existingSizes.length > 0) {
-      setSizeRows(
-        DEFAULT_SIZES.map((size) => {
-          const existing = existingSizes.find((s) => s.size === size);
-          return existing
-            ? { size: existing.size, stock: Number(existing.stock), is_enabled: Boolean(existing.is_enabled) }
-            : { size, stock: 0, is_enabled: true };
-        })
-      );
-    } else {
-      setSizeRows(DEFAULT_SIZES.map((size) => ({ size, stock: 0, is_enabled: true })));
-    }
-  }, [product?.id, isEditing, existingSizes]);
+    setAddonRows(isEditing ? existingAddons.map(a=>({name:a.name,price:Number(a.price),is_enabled:a.is_enabled})) : []);
+  }, [product?.id, isEditing, existingAddons]);
 
   const nameValue = form.watch('name');
   useEffect(() => {
@@ -177,11 +162,11 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         const created = await createProduct.mutateAsync(payload);
         productId = created.id;
       }
-      await bulkUpdateSizes.mutateAsync({ productId, sizes: sizeRows });
+      await replaceAddons.mutateAsync({ productId, addons: addonRows.filter(a=>a.name.trim()).map(a=>({...a,name:a.name.trim()})) });
       onSuccess?.();
       if (!isEditing) {
         form.reset();
-        setSizeRows(DEFAULT_SIZES.map((size) => ({ size, stock: 0, is_enabled: true })));
+        setAddonRows([]);
         setImages([]);
         setImageInput('');
         setColors([]);
@@ -190,16 +175,6 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     } catch {
       // Error handled by mutation
     }
-  };
-
-  const handleSizeStockChange = (size: string, value: string) => {
-    const parsed = value === '' ? 0 : parseInt(value, 10);
-    const stock = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
-    setSizeRows((prev) => prev.map((r) => (r.size === size ? { ...r, stock } : r)));
-  };
-
-  const handleSizeEnabledChange = (size: string) => {
-    setSizeRows((prev) => prev.map((r) => (r.size === size ? { ...r, is_enabled: !r.is_enabled } : r)));
   };
 
   const isValidImageUrl = (value: string) => {
@@ -292,7 +267,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     updateColors(colors.filter((color) => color !== value));
   };
 
-  const isSubmitting = createProduct.isPending || updateProduct.isPending || bulkUpdateSizes.isPending;
+  const isSubmitting = createProduct.isPending || updateProduct.isPending || replaceAddons.isPending;
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -552,53 +527,23 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         </div>
       </div>
 
-      {/* Size inventory */}
+      {/* Restaurant add-ons */}
       <div className="space-y-4 rounded-lg border border-border p-4">
         <div className="flex items-center justify-between">
           <h3 className="font-display font-semibold flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            Option inventory
+            Sides &amp; add-ons
           </h3>
-          <span className="text-sm text-muted-foreground">
-            {sizeRows.filter((r) => r.is_enabled).reduce((sum, r) => sum + r.stock, 0)} total
-          </span>
+          <Button type="button" variant="outline" size="sm" onClick={()=>setAddonRows(v=>[...v,{name:'',price:0,is_enabled:true}])}><Plus/> Add option</Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-            Optional legacy variants retained for database compatibility.
-        </p>
+        <p className="text-sm text-muted-foreground">Add fries, drinks, sauces, cheese, or any extra customers can choose with this item.</p>
         <div className="grid gap-3">
-          {sizeRows.map((row) => (
-            <div
-              key={row.size}
-              className={cn(
-                'flex items-center gap-4 p-3 rounded-lg border transition-colors',
-                row.is_enabled ? 'bg-card border-border' : 'bg-muted/50 border-muted'
-              )}
-            >
-              <span className="w-10 font-display font-bold text-sm">{row.size}</span>
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  min="0"
-                  value={row.stock}
-                  onChange={(e) => handleSizeStockChange(row.size, e.target.value)}
-                  disabled={!row.is_enabled}
-                  placeholder="Stock"
-                  className={cn(!row.is_enabled && 'opacity-50')}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`size-${row.size}`}
-                  checked={row.is_enabled}
-                  onCheckedChange={() => handleSizeEnabledChange(row.size)}
-                />
-                <Label htmlFor={`size-${row.size}`} className="text-sm cursor-pointer">
-                  {row.is_enabled ? 'Enabled' : 'Disabled'}
-                </Label>
-              </div>
-            </div>
-          ))}
+          {addonRows.map((row,index) => <div key={index} className="grid items-center gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_150px_auto_auto]">
+            <Input value={row.name} onChange={e=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,name:e.target.value}:a))} placeholder="e.g. Loaded fries" />
+            <Input type="number" min="0" step="0.01" value={row.price} onChange={e=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,price:Math.max(0,Number(e.target.value))}:a))} placeholder="Price" />
+            <div className="flex items-center gap-2"><Checkbox checked={row.is_enabled} onCheckedChange={()=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,is_enabled:!a.is_enabled}:a))}/><span className="text-sm">Enabled</span></div>
+            <Button type="button" variant="ghost" size="icon" onClick={()=>setAddonRows(v=>v.filter((_,i)=>i!==index))} aria-label="Remove add-on"><Trash2 className="text-destructive"/></Button>
+          </div>)}
+          {!addonRows.length&&<p className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">No add-ons yet.</p>}
         </div>
       </div>
 

@@ -23,7 +23,8 @@ type CreateOrderBody = {
 
 const buildOrderItems = (
   items: CartItemInput[],
-  products: Array<{ id: string; name: string; image_url: string | null; price: number }>
+  products: Array<{ id: string; name: string; image_url: string | null; price: number }>,
+  addons: Array<{ id: string; product_id: string; name: string; price: number; is_enabled: boolean }>
 ) => {
   const productMap = new Map(products.map((p) => [p.id, p]));
   const orderItems: Array<{
@@ -33,6 +34,7 @@ const buildOrderItems = (
     quantity: number;
     unit_price: number;
     total_price: number;
+    selections: Record<string, unknown>;
   }> = [];
 
   let subtotal = 0;
@@ -41,7 +43,8 @@ const buildOrderItems = (
     const product = item?.product_id ? productMap.get(item.product_id) : null;
     const quantity = Number(item?.quantity || 0);
     if (!product || !Number.isFinite(quantity) || quantity <= 0) continue;
-    const unitPrice = Number(product.price || 0);
+    const selectedAddons = addons.filter(a=>a.product_id===product.id && a.is_enabled && (item.selected_addon_ids||[]).includes(a.id));
+    const unitPrice = Number(product.price || 0) + selectedAddons.reduce((sum,a)=>sum+Number(a.price),0);
     const totalPrice = roundCurrency(unitPrice * quantity);
     subtotal += totalPrice;
     orderItems.push({
@@ -51,6 +54,7 @@ const buildOrderItems = (
       quantity,
       unit_price: unitPrice,
       total_price: totalPrice,
+      selections: { addons: selectedAddons.map(a=>({id:a.id,name:a.name,price:Number(a.price)})) },
     });
   }
 
@@ -149,9 +153,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    const addonIds = Array.from(new Set(items.flatMap(item=>item.selected_addon_ids||[])));
+    let selectedAddons: Array<{ id:string;product_id:string;name:string;price:number;is_enabled:boolean }> = [];
+    if (addonIds.length) {
+      const { data: addonData, error: addonError } = await supabase.from('product_addons').select('id, product_id, name, price, is_enabled').in('id', addonIds);
+      if (addonError) { res.status(500).json({ error: 'Failed to load add-ons' }); return; }
+      selectedAddons = (addonData || []) as typeof selectedAddons;
+    }
+
     const { orderItems, subtotal } = buildOrderItems(
       items,
-      products as Array<{ id: string; name: string; image_url: string | null; price: number }>
+      products as Array<{ id: string; name: string; image_url: string | null; price: number }>,
+      selectedAddons
     );
 
     if (orderItems.length === 0 || subtotal <= 0) {

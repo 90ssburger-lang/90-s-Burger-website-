@@ -72,7 +72,7 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
               <div
-                key={`${item.product.id}-${item.size || 'default'}-${item.color || 'default'}`}
+                key={`${item.product.id}-${(item.addons||[]).map(a=>a.id).join('-')||'default'}`}
                 className="glass-card flex gap-4 p-4"
               >
                 {/* Image */}
@@ -102,26 +102,10 @@ export default function CartPage() {
                       >
                         {item.product.name}
                       </Link>
-                      {item.size && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Size: <span className="font-medium text-foreground">{item.size}</span>
-                        </p>
-                      )}
-                      {item.color && (
-                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-                          Color:
-                          <span className="flex items-center gap-2 font-medium text-foreground">
-                            <span
-                              className="h-3 w-3 rounded-full border border-gray-200"
-                              style={{ backgroundColor: item.color }}
-                            />
-                            {item.color}
-                          </span>
-                        </p>
-                      )}
+                      {!!item.addons?.length && <p className="mt-1 text-sm text-muted-foreground">Sides: <span className="font-medium text-foreground">{item.addons.map(a=>a.name).join(', ')}</span></p>}
                     </div>
                     <button
-                      onClick={() => removeItem(item.product.id, item.size, item.color)}
+                      onClick={() => removeItem(item.product.id, item.addons)}
                       className="text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <Trash2 className="h-5 w-5" />
@@ -132,14 +116,14 @@ export default function CartPage() {
                     {/* Quantity */}
                     <div className="flex items-center border border-gray-200 rounded-lg bg-white">
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.size, item.color)}
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.addons)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Minus className="h-4 w-4" />
                       </button>
                       <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.size, item.color)}
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.addons)}
                         className="p-2 hover:bg-gray-50 transition-colors"
                       >
                         <Plus className="h-4 w-4" />
@@ -149,7 +133,7 @@ export default function CartPage() {
                     {/* Price */}
                     <div className="text-right">
                       <p className="font-display font-bold">
-                        {formatCurrency(item.product.price * item.quantity)}
+                        {formatCurrency((item.product.price + (item.addons||[]).reduce((s,a)=>s+Number(a.price),0)) * item.quantity)}
                       </p>
                       {item.quantity > 1 && (
                         <p className="text-xs text-muted-foreground">
