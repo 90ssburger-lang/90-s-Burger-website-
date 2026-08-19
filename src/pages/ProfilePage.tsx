@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const { user, profile, isStaff, refreshProfile, signOut } = useAuth();
   const [name, setName] = useState(profile?.full_name || '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => setName(profile?.full_name || ''), [profile?.full_name]);
 
@@ -31,6 +32,25 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/login', { replace: true });
+  };
+
+  const deleteAccount = async () => {
+    if (!window.confirm('Permanently delete your account? This cannot be undone.')) return;
+    if (!window.confirm('Final confirmation: delete this login and profile permanently?')) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) { toast.error('Your session expired. Sign in again.'); return; }
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/account/delete', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Unable to delete account');
+      await signOut();
+      navigate('/login', { replace: true });
+      toast.success('Account deleted');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to delete account');
+    } finally { setDeleting(false); }
   };
 
   return <MainLayout>
@@ -52,6 +72,7 @@ export default function ProfilePage() {
           <div><Label>Account ID</Label><Input className="mt-2 h-12 bg-muted font-mono text-xs" value={user?.id || ''} disabled /></div>
           <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row"><Button type="submit" disabled={saving} className="rounded-full bg-[#ef3e2f] px-7 text-white hover:bg-[#d92d20]">{saving ? 'Saving…' : 'Save profile'}</Button>{isStaff && <Link to="/admin"><Button type="button" variant="outline" className="rounded-full">Open dashboard</Button></Link>}<Button type="button" variant="ghost" onClick={handleSignOut} className="sm:ml-auto">Sign out</Button></div>
         </form>
+        <div className="border-t border-red-100 bg-red-50/50 p-6"><h3 className="font-bold text-red-700">Danger zone</h3><p className="mt-1 text-sm text-red-700/70">Permanently remove this Auth user and their profile.</p><Button type="button" variant="destructive" disabled={deleting} onClick={deleteAccount} className="mt-4 rounded-full">{deleting ? 'Deleting...' : 'Delete account'}</Button></div>
       </div>
     </div>
   </MainLayout>;
