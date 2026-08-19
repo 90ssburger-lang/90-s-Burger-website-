@@ -18,6 +18,7 @@ type CreatePaymentBody = {
   billingData: Record<string, string | number | null>;
   items: CartItemInput[];
   shippingCost?: number | null;
+  deliveryZoneId?: string | null;
   couponCode?: string | null;
   orderPayload?: {
     userId?: string | null;
@@ -59,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { merchantOrderId, billingData, items, shippingCost, couponCode, orderPayload } =
+    const { merchantOrderId, billingData, items, deliveryZoneId, couponCode, orderPayload } =
       (req.body as CreatePaymentBody) || {};
 
     if (!billingData || !Array.isArray(items) || items.length === 0 || !orderPayload) {
@@ -154,7 +155,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       appliedCouponCode = coupon.code;
     }
 
-    const shipping = Number(shippingCost || 0);
+    if (!deliveryZoneId) {
+      res.status(400).json({ error: "Please select a delivery zone" });
+      return;
+    }
+    const { data: deliveryZone, error: zoneError } = await supabase
+      .from("delivery_zones")
+      .select("id, name, delivery_fee, is_active")
+      .eq("id", deliveryZoneId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (zoneError || !deliveryZone) {
+      res.status(400).json({ error: "Selected delivery zone is unavailable" });
+      return;
+    }
+    const shipping = Number(deliveryZone.delivery_fee);
+    orderPayload.shippingAddress = orderPayload.shippingAddress ? { ...orderPayload.shippingAddress, deliveryZoneId: deliveryZone.id, deliveryZoneName: deliveryZone.name, state: deliveryZone.name, city: "Alexandria" } : null;
     const total = Math.max(0, cartSnapshot.subtotal + shipping - discountAmount);
     const totalAmountCents = Math.round(total * 100);
 

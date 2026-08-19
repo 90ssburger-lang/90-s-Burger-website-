@@ -61,7 +61,7 @@ export default function ColorSelector({
   return (
     <div
       className={`w-full rounded-xl border-2 p-4 transition-colors sm:p-5 ${
-        showError ? "border-red-500 bg-red-50/30" : "border-slate-200 bg-white"
+        showError ? "border-red-500 bg-fuchsia-50/30" : "border-slate-200 bg-white"
       }`}
     >
       <p className="mb-4 text-base font-bold text-slate-900">

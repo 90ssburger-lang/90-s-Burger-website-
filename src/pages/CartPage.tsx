@@ -4,34 +4,11 @@ import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { CouponCodeCard } from '@/components/cart/CouponCodeCard';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
-import { formatCurrency, getFreeShippingThreshold, SHIPPING_COST, SHIPPING_DOUBLE_ITEMS_THRESHOLD, MAX_SHIPPING_COST } from '@/lib/utils';
-import type { CartItem } from '@/types';
-
-function getShippingCost(
-  items: CartItem[],
-  subtotal: number,
-  freeShippingThreshold: number
-): { cost: number; isDoubled: boolean } {
-  if (subtotal >= freeShippingThreshold) return { cost: 0, isDoubled: false };
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const base = items.reduce(
-    (sum, item) => sum + item.quantity * (item.product.shipping_price ?? SHIPPING_COST),
-    0
-  );
-  const isDoubled = itemCount > SHIPPING_DOUBLE_ITEMS_THRESHOLD;
-  const computed = isDoubled ? base * 2 : base;
-  return { cost: Math.min(computed, MAX_SHIPPING_COST), isDoubled };
-}
+import { formatCurrency } from '@/lib/utils';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, itemCount, subtotal, discount, appliedCoupon } = useCart();
-  const freeShippingThreshold = getFreeShippingThreshold();
-  const { cost: shippingCost, isDoubled: shippingIsDoubled } = getShippingCost(
-    items,
-    subtotal,
-    freeShippingThreshold
-  );
-  const total = Math.max(0, subtotal + shippingCost - discount);
+  const total = Math.max(0, subtotal - discount);
 
   if (items.length === 0) {
     return (
@@ -158,30 +135,14 @@ export default function CartPage() {
                   <span className="font-medium">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium">
-                    {shippingCost === 0 ? (
-                      <span className="text-green-500">Included</span>
-                    ) : (
-                      formatCurrency(shippingCost)
-                    )}
-                  </span>
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="text-sm font-medium">Calculated by zone</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Discount {appliedCoupon ? `(${appliedCoupon.code})` : ''}</span>
                     <span>-{formatCurrency(discount)}</span>
                   </div>
-                )}
-                {shippingIsDoubled && shippingCost > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    2x shipping applied (more than {SHIPPING_DOUBLE_ITEMS_THRESHOLD} items)
-                  </p>
-                )}
-                {freeShippingThreshold > 0 && subtotal < freeShippingThreshold && (
-                  <p className="text-xs text-muted-foreground">
-                    Add {formatCurrency(freeShippingThreshold - subtotal)} more for free shipping!
-                  </p>
                 )}
               </div>
 

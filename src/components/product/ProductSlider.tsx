@@ -126,7 +126,7 @@ export function ProductSlider({
                         {/* Badges */}
                         <div className="absolute top-3 left-3 flex flex-col gap-2">
                           {isOnSale && (
-                            <span className="drip-badge border-red-200 bg-red-50 text-red-700">
+                            <span className="drip-badge border-red-200 bg-fuchsia-50 text-red-700">
                               -{discount}%
                             </span>
                           )}

@@ -17,6 +17,7 @@ type CreateOrderBody = {
   transactionId?: string | null;
   paidAt?: string | null;
   shippingCost?: number | null;
+  deliveryZoneId?: string | null;
   items: CartItemInput[];
   couponCode?: string | null;
 };
@@ -193,7 +194,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       discountAmount = couponResult.discountAmount;
     }
 
-    const shippingCost = Number(body.shippingCost || 0);
+    if (!body.deliveryZoneId) {
+      res.status(400).json({ error: "Please select a delivery zone" });
+      return;
+    }
+    const { data: deliveryZone, error: zoneError } = await supabase
+      .from("delivery_zones")
+      .select("id, name, delivery_fee, is_active")
+      .eq("id", body.deliveryZoneId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (zoneError || !deliveryZone) {
+      res.status(400).json({ error: "Selected delivery zone is unavailable" });
+      return;
+    }
+    const shippingCost = Number(deliveryZone.delivery_fee);
+    body.shippingAddress = { ...body.shippingAddress, deliveryZoneId: deliveryZone.id, deliveryZoneName: deliveryZone.name, state: deliveryZone.name, city: "Alexandria" };
     const total = roundCurrency(Math.max(0, subtotal + shippingCost - discountAmount));
     const totalAmountCents = Math.round(total * 100);
 

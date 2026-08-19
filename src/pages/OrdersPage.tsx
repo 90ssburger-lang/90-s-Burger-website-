@@ -16,7 +16,7 @@ const statusColors: Record<OrderStatus, string> = {
   processing: 'border border-blue-200 text-blue-700 bg-blue-50',
   shipped: 'border border-purple-200 text-purple-700 bg-purple-50',
   delivered: 'border border-green-200 text-green-700 bg-green-50',
-  cancelled: 'border border-red-200 text-red-700 bg-red-50',
+  cancelled: 'border border-red-200 text-red-700 bg-fuchsia-50',
 };
 
 export default function OrdersPage() {

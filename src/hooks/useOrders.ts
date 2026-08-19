@@ -111,6 +111,7 @@ export function useCreateOrder() {
       paidAt?: string | null;
       orderId?: string;
       shippingCost?: number;
+      deliveryZoneId?: string;
       couponCode?: string | null;
       items?: Array<{ product_id: string; quantity: number; selected_addon_ids?: string[] }>;
     }) => {
@@ -154,6 +155,7 @@ export function useCreateOrder() {
           transactionId: orderData.transactionId ?? null,
           paidAt: orderData.paidAt ?? null,
           shippingCost: fallbackShippingCost,
+          deliveryZoneId: orderData.deliveryZoneId,
           couponCode: orderData.couponCode ?? null,
           items: payloadItems,
         }),

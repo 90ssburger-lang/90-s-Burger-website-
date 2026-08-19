@@ -1,0 +1,67 @@
+.nav-burger {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 18px;
+}
+
+.nav-burger__lines,
+.nav-burger__lines::before,
+.nav-burger__lines::after {
+  position: absolute;
+  left: 0;
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.nav-burger__lines {
+  top: 8px;
+  transition: background-color 0s 150ms;
+}
+
+.nav-burger__lines::before,
+.nav-burger__lines::after {
+  content: "";
+  transition-duration: 150ms, 150ms;
+  transition-timing-function: ease-in-out;
+}
+
+.nav-burger__lines::before {
+  top: -7px;
+  transition-property: top, transform;
+  transition-delay: 150ms, 0s;
+}
+
+.nav-burger__lines::after {
+  bottom: -7px;
+  transition-property: bottom, transform;
+  transition-delay: 150ms, 0s;
+}
+
+.nav-burger--squeeze.is-open .nav-burger__lines {
+  background-color: transparent;
+}
+
+.nav-burger--squeeze.is-open .nav-burger__lines::before {
+  top: 0;
+  transform: rotate(45deg);
+  transition-delay: 0s, 150ms;
+}
+
+.nav-burger--squeeze.is-open .nav-burger__lines::after {
+  bottom: 0;
+  transform: rotate(-45deg);
+  transition-delay: 0s, 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-burger__lines,
+  .nav-burger__lines::before,
+  .nav-burger__lines::after {
+    transition-duration: 0.01ms;
+    transition-delay: 0s;
+  }
+}

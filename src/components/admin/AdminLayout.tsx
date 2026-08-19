@@ -13,11 +13,12 @@ import {
   X,
   Home,
   Tag,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/logo-neon.png';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -29,6 +30,7 @@ const navItems = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
+  { href: '/admin/delivery-zones', label: 'Delivery Zones', icon: MapPin },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {

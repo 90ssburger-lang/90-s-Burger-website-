@@ -24,6 +24,16 @@ export interface Category {
   updated_at: string;
 }
 
+export interface DeliveryZone {
+  id: string;
+  name: string;
+  delivery_fee: number;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ProductSize {
   id: string;
   product_id: string;
@@ -111,6 +121,8 @@ export interface Address {
   zip: string;
   country: string;
   phone?: string;
+  deliveryZoneId?: string;
+  deliveryZoneName?: string;
 }
 
 export interface CartItem {

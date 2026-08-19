@@ -46,6 +46,7 @@ export default function PaymentResultPage() {
       shippingAddress: any;
       billingAddress: any;
       shippingCost?: number;
+      deliveryZoneId?: string;
       couponCode?: string | null;
       items?: Array<{ product_id: string; quantity: number }>;
     };
@@ -69,6 +70,7 @@ export default function PaymentResultPage() {
         paidAt: new Date().toISOString(),
         orderId: pending.orderId,
         shippingCost: pending.shippingCost,
+        deliveryZoneId: pending.deliveryZoneId,
         couponCode: pending.couponCode ?? null,
         items: pending.items,
       })
