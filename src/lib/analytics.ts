@@ -16,6 +16,11 @@ export const trackMetaEvent = (event: MetaEvent, data: Record<string, unknown> =
   window.dispatchEvent(new CustomEvent('meta-commerce-event', { detail: { event, eventId: id, data } }));
 };
 
+export const trackMetaPageView = () => {
+  if (typeof window === 'undefined') return;
+  window.fbq?.('track', 'PageView');
+};
+
 export type SessionTrackingPayload = {
   session_id: string;
   user_id?: string | null;
