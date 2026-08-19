@@ -155,7 +155,7 @@ const sendInvoiceEmail = async (payload: {
   const port = Number(process.env.SMTP_PORT || 587);
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || "Drippss <no-reply@drippss.com>";
+  const from = process.env.SMTP_FROM || "90's Burger <orders@90sburger.com>";
 
   if (!host || !user || !pass) return;
 

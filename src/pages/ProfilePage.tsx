@@ -37,21 +37,11 @@ export default function ProfilePage() {
   const deleteAccount = async () => {
     if (!window.confirm('Permanently delete your account? This cannot be undone.')) return;
     if (!window.confirm('Final confirmation: delete this login and profile permanently?')) return;
-    // Force a fresh JWT before this destructive request instead of relying on a
-    // possibly stale token restored from local storage.
-    const { data: sessionData, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError) {
-      toast.error('Your login expired. Sign out and sign in again before deleting the account.');
-      return;
-    }
-    const token = sessionData.session?.access_token;
-    if (!token) { toast.error('Your session expired. Sign in again.'); return; }
     setDeleting(true);
     try {
-      const response = await fetch('/api/account/delete', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'Unable to delete account');
-      await signOut();
+      const { error: deleteError } = await supabase.rpc('delete_own_account');
+      if (deleteError) throw deleteError;
+      await supabase.auth.signOut({ scope: 'local' });
       navigate('/login', { replace: true });
       toast.success('Account deleted');
     } catch (error) {
