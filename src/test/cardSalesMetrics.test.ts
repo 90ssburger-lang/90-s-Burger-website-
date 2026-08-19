@@ -16,10 +16,11 @@ const buildSupabaseMock = (rows: Array<{ total_amount_cents: number | null; paid
     }),
   },
   from: (table: string) => {
-    if (table === "user_roles") {
+    if (table === "profiles") {
       return {
         select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ data: [{ role: "admin" }], error: null }),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: { role: "admin" }, error: null }),
       };
     }
     if (table === "orders") {

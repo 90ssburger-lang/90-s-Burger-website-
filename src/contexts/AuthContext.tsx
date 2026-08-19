@@ -28,16 +28,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserRoles = async (userId: string) => {
     const { data, error } = await supabase
-      .from('user_roles')
+      .from('profiles')
       .select('role')
-      .eq('user_id', userId);
+      .eq('id', userId)
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching roles:', error);
       return [];
     }
 
-    return data.map(r => r.role as AppRole);
+    return data?.role ? [data.role as AppRole] : ['customer' as AppRole];
   };
 
   useEffect(() => {

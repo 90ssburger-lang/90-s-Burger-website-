@@ -33,10 +33,11 @@ export const assertAdmin = async (req: VercelRequest) => {
     throw err;
   }
 
-  const { data: roles, error: rolesError } = await supabase
-    .from("user_roles")
+  const { data: profile, error: rolesError } = await supabase
+    .from("profiles")
     .select("role")
-    .eq("user_id", data.user.id);
+    .eq("id", data.user.id)
+    .maybeSingle();
 
   if (rolesError) {
     const err = new Error("Failed to validate admin role");
@@ -44,7 +45,7 @@ export const assertAdmin = async (req: VercelRequest) => {
     throw err;
   }
 
-  const isAdmin = roles?.some((row) => row.role === "admin");
+  const isAdmin = profile?.role === "admin";
   if (!isAdmin) {
     const err = new Error("Not authorized");
     (err as any).status = 403;

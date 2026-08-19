@@ -102,11 +102,12 @@ const getAccessToken = (req: express.Request) => {
 
 const isStaffUser = async (supabase: ReturnType<typeof getSupabaseAdminClient>, userId: string) => {
   const { data, error } = await supabase
-    .from("user_roles")
+    .from("profiles")
     .select("role")
-    .eq("user_id", userId);
+    .eq("id", userId)
+    .maybeSingle();
   if (error) return false;
-  return data.some((row) => row.role === "admin" || row.role === "manager");
+  return data?.role === "admin" || data?.role === "manager";
 };
 
 const assertInvoiceAccess = async (
