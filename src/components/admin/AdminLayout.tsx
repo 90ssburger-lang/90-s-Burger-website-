@@ -15,6 +15,7 @@ import {
   Tag,
   MapPin,
   BarChart3,
+  ChefHat,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/kitchen', label: 'Kitchen', icon: ChefHat },
   { href: '/admin/categories', label: 'Categories', icon: FolderTree },
   { href: '/admin/coupons', label: 'Coupons', icon: Tag },
   { href: '/admin/delivery-zones', label: 'Delivery Zones', icon: MapPin },

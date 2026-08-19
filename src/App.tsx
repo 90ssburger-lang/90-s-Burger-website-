@@ -27,6 +27,7 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const KitchenPage = lazy(() => import("./pages/KitchenPage"));
 
 // Admin pages
 const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
@@ -95,6 +96,7 @@ const App = () => (
                     }
                   />
                   <Route path="/favorites" element={<FavoritesPage />} />
+                  <Route path="/kitchen" element={<KitchenPage />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
 
@@ -103,6 +105,7 @@ const App = () => (
                   <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
                   <Route path="/admin/customers" element={<AdminCustomersPage />} />
                   <Route path="/admin/orders/new" element={<AdminCreateOrderPage />} />
+                  <Route path="/admin/kitchen" element={<KitchenPage />} />
                   <Route path="/admin/products" element={<AdminProductsPage />} />
                   <Route path="/admin/orders" element={<AdminOrdersPage />} />
                   <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />

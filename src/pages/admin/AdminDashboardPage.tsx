@@ -19,7 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { OrderStatus } from '@/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   BarChart,
@@ -57,6 +58,8 @@ export default function AdminDashboardPage() {
   );
   const [socialInputs, setSocialInputs] = useState<SocialLinks>(() => getSocialLinks());
 
+  useEffect(() => { void (supabase as any).from('site_settings').select('value').eq('key', 'social_links').maybeSingle().then(({ data }: any) => { if (data?.value) setSocialInputs(data.value as SocialLinks); }); }, []);
+
   const handleSaveFreeShipping = () => {
     const value = Number(freeShippingInput);
     if (!Number.isFinite(value) || value < 0) {
@@ -68,9 +71,11 @@ export default function AdminDashboardPage() {
     toast.success('Free shipping limit updated.');
   };
 
-  const handleSaveSocialLinks = () => {
+  const handleSaveSocialLinks = async () => {
     setSocialLinks(socialInputs);
-    toast.success('Social links updated.');
+    const { error } = await (supabase as any).from('site_settings').upsert({ key: 'social_links', value: socialInputs, updated_at: new Date().toISOString() });
+    if (error) { toast.error('Social links could not be saved for all visitors. Apply the latest database migration.'); return; }
+    toast.success('Social links updated for all visitors.');
   };
 
   return (

@@ -16,7 +16,7 @@ export default function AuthPage() {
     if (!loading && user) {
       const from = (location.state as { from?: { pathname?: string } | string } | null)?.from;
       const requested = typeof from === 'string' ? from : from?.pathname;
-      navigate(requested || (profile?.role === 'admin' || profile?.role === 'manager' ? '/admin' : '/profile'), { replace: true });
+      navigate(requested || (profile?.role === 'kitchen' ? '/kitchen' : profile?.role === 'admin' || profile?.role === 'manager' ? '/admin' : '/profile'), { replace: true });
     }
   }, [loading, user, profile?.role, location.state, navigate]);
 
@@ -27,7 +27,7 @@ export default function AuthPage() {
     const result = await signIn(email, password);
     setSubmitting(false);
     if (result.error) { setError(result.error); return; }
-    navigate(result.role === 'admin' || result.role === 'manager' ? '/admin' : '/profile', { replace: true });
+    navigate(result.role === 'kitchen' ? '/kitchen' : result.role === 'admin' || result.role === 'manager' ? '/admin' : '/profile', { replace: true });
   };
 
   return <div className="flex min-h-screen items-center justify-center bg-[#fbf8ff] px-4 py-10">
