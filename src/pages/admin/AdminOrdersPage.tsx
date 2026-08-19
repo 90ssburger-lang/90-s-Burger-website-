@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useOrders, useUpdateOrderStatus } from '@/hooks/useOrders';
+import { useOrders, useSendOrderToKitchen, useUpdateOrderStatus } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus, ChefHat } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { OrderStatus } from '@/types';
@@ -107,6 +107,7 @@ export default function AdminOrdersPage() {
     statusFilter !== 'all' ? { status: statusFilter } : undefined
   );
   const updateStatus = useUpdateOrderStatus();
+  const sendToKitchen = useSendOrderToKitchen();
   const [confirmers, setConfirmers] = useState<string[]>(() => loadConfirmers());
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
@@ -282,6 +283,11 @@ export default function AdminOrdersPage() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => handlePrintInvoice(order.id)}>
                             Print Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => sendToKitchen.mutate(order.id)} disabled={Boolean(order.sent_to_kitchen_at)}>
+                            <ChefHat className="mr-2 h-4 w-4" />
+                            {order.sent_to_kitchen_at ? 'Sent to Kitchen' : 'Send to Kitchen'}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuLabel>Update Status</DropdownMenuLabel>

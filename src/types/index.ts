@@ -86,6 +86,7 @@ export interface Order {
   total: number;
   subtotal: number;
   shipping_cost: number;
+  sent_to_kitchen_at?: string | null;
   discount_amount?: number;
   coupon_id?: string | null;
   coupon_code?: string | null;

@@ -210,3 +210,16 @@ export function useUpdateOrderStatus() {
     },
   });
 }
+
+export function useSendOrderToKitchen() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.from('orders').update({ sent_to_kitchen_at: new Date().toISOString() }).eq('id', id).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['orders'] }); queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] }); toast.success('Order sent to kitchen'); },
+    onError: (error) => toast.error(`Could not send order to kitchen: ${error.message}`),
+  });
+}
