@@ -13,6 +13,17 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const oauthError = query.get('error') || hash.get('error');
+    const errorCode = query.get('error_code') || hash.get('error_code');
+    if (oauthError || errorCode) {
+      window.sessionStorage.removeItem('oauth_return_to');
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     if (!loading && user) {
       const from = (location.state as { from?: { pathname?: string } | string } | null)?.from;
       const requested = typeof from === 'string' ? from : from?.pathname;
