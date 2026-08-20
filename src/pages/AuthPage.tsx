@@ -20,6 +20,7 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleStatus, setGoogleStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -52,6 +53,8 @@ export default function AuthPage() {
 
   useEffect(() => {
     let active = true;
+    let attempts = 0;
+    let timer: number | undefined;
     const renderGoogleButton = () => {
       if (!active || !window.google || !googleButtonRef.current) return;
       googleButtonRef.current.innerHTML = '';
@@ -70,20 +73,41 @@ export default function AuthPage() {
           navigate(requested || '/profile', { replace: true });
         },
       });
-      window.google.accounts.id.renderButton(googleButtonRef.current, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width: 352 });
+      const width = Math.max(200, Math.min(400, Math.floor(googleButtonRef.current.getBoundingClientRect().width)));
+      window.google.accounts.id.renderButton(googleButtonRef.current, { type: 'standard', theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width });
+      setGoogleStatus('ready');
     };
+
+    const waitForGoogle = () => {
+      if (!active) return;
+      if (window.google?.accounts?.id) { renderGoogleButton(); return; }
+      attempts += 1;
+      if (attempts >= 100) { setGoogleStatus('error'); return; }
+      timer = window.setTimeout(waitForGoogle, 100);
+    };
+
     const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
-    if (window.google) renderGoogleButton();
-    else if (existing) existing.addEventListener('load', renderGoogleButton, { once: true });
-    else { const script = document.createElement('script'); script.src = 'https://accounts.google.com/gsi/client'; script.async = true; script.onload = renderGoogleButton; document.head.appendChild(script); }
-    return () => { active = false; existing?.removeEventListener('load', renderGoogleButton); };
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onerror = () => active && setGoogleStatus('error');
+      document.head.appendChild(script);
+    }
+    waitForGoogle();
+    return () => { active = false; if (timer) window.clearTimeout(timer); };
   }, [location.state, navigate, signInWithGoogleToken]);
 
   return <div className="flex min-h-screen items-center justify-center bg-[#fbf8ff] px-4 py-10">
     <div className="w-full max-w-md rounded-3xl border border-black/10 bg-white p-6 shadow-xl sm:p-8">
       <div className="mb-7 text-center"><div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[#a80062] text-xl font-black text-white">90</div><h1 className="mt-4 text-3xl font-black uppercase">Welcome back</h1><p className="mt-2 text-sm text-muted-foreground">Sign in or create your customer account.</p></div>
       {error && <div role="alert" aria-live="polite" className="mb-5 rounded-xl border border-red-200 bg-fuchsia-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-      <div className={submitting ? 'pointer-events-none opacity-60' : ''}><div ref={googleButtonRef} className="flex min-h-11 w-full justify-center overflow-hidden" aria-label="Continue with Google" /></div>
+      <div className={submitting ? 'pointer-events-none opacity-60' : ''}>
+        <div ref={googleButtonRef} className="flex min-h-11 w-full justify-center" aria-label="Continue with Google" />
+        {googleStatus === 'loading' && <p className="-mt-11 flex h-11 items-center justify-center text-sm text-muted-foreground">Loading Google sign-in…</p>}
+        {googleStatus === 'error' && <button type="button" onClick={() => window.location.reload()} className="-mt-11 h-11 w-full rounded-full border border-black/20 bg-white text-sm font-bold">Reload Google sign-in</button>}
+      </div>
       <div className="my-5 flex items-center gap-3"><span className="h-px flex-1 bg-gray-200"/><span className="text-xs font-medium uppercase text-muted-foreground">or use email</span><span className="h-px flex-1 bg-gray-200"/></div>
       <form onSubmit={submit} className="space-y-5">
         <div><label htmlFor="email" className="mb-2 block text-sm font-bold">Email</label><input id="email" type="email" autoComplete="email" required disabled={submitting} value={email} onChange={e=>setEmail(e.target.value)} className="h-12 w-full rounded-xl border px-4 outline-none focus:border-[#f0008f] focus:ring-2 focus:ring-fuchsia-100" /></div>
