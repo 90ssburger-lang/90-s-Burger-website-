@@ -35,7 +35,14 @@ export function useAnalytics(range: AnalyticsRange) {
 
       const sessions = sessionsResult.data || [];
       const events = eventsResult.data || [];
-      const userIds = [...new Set(sessions.map(s => s.user_id).filter(Boolean))] as string[];
+      const eventUserBySession = new Map<string, string>();
+      events.forEach(event => {
+        if (event.user_id) eventUserBySession.set(event.session_id, event.user_id);
+      });
+      const userIds = [...new Set([
+        ...sessions.map(s => s.user_id),
+        ...eventUserBySession.values(),
+      ].filter(Boolean))] as string[];
       const profiles = userIds.length
         ? (await supabase.from('profiles').select('id, full_name, email').in('id', userIds)).data || []
         : [];
@@ -45,11 +52,13 @@ export function useAnalytics(range: AnalyticsRange) {
 
       const visitors = sessions.map(session => {
         const activity = eventsBySession.get(session.session_id) || [];
-        const profile = session.user_id ? profileMap.get(session.user_id) : undefined;
+        const resolvedUserId = session.user_id || eventUserBySession.get(session.session_id) || null;
+        const profile = resolvedUserId ? profileMap.get(resolvedUserId) : undefined;
         const started = new Date(session.started_at).getTime();
         const ended = new Date(session.last_seen_at || session.started_at).getTime();
         return {
           ...session,
+          user_id: resolvedUserId,
           name: profile?.full_name || (profile?.email ? profile.email.split('@')[0] : 'Anonymous visitor'),
           email: profile?.email || null,
           device: deviceFromAgent(session.user_agent),
