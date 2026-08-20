@@ -8,6 +8,7 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  delivery_address: string | null;
   avatar_url: string | null;
   role: AppRole;
   created_at: string;

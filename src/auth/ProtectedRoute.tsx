@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,6 +20,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  const needsCustomerProfile = profile?.role === "customer" &&
+    (!profile.full_name?.trim() || !profile.delivery_address?.trim());
+
+  if (needsCustomerProfile && location.pathname !== "/profile") {
+    return <Navigate to="/profile" replace state={{ onboarding: true }} />;
   }
 
   return children ? <>{children}</> : <Outlet />;
