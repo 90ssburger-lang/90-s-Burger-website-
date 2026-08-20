@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Format price in Egyptian Pounds (L.E.) */
 export function formatCurrency(amount: number): string {
-  return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L.E.`;
+  return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0L.E.`;
 }
 
 /** Minimum order amount for free shipping (L.E.) */

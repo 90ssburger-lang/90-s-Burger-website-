@@ -37,15 +37,18 @@ export default function HomePage() {
         <div className="relative mx-auto w-full max-w-[27rem] px-3 py-4 sm:px-5">
           <div className="absolute inset-[8%] -z-0 rounded-[3rem] bg-[#00c8f0]/35 blur-3xl" aria-hidden="true" />
           <div className="relative overflow-hidden rounded-[2rem] border border-[#00c8f0]/45 bg-[#fbf8ff] p-2 shadow-[0_32px_80px_-30px_rgba(0,0,0,.85)] sm:p-3">
-            <img
-              className="block h-auto w-full rounded-[1.35rem] object-contain"
-              src="/images/burger-exploded-guide-640.png"
-              width="640"
-              height="853"
-              alt="Exploded double burger showing brioche buns, onions, tomatoes, cheddar cheese, lettuce, and premium beef patties"
-              fetchPriority="high"
-              decoding="async"
-            />
+            <picture>
+              <source media="(max-width: 639px)" srcSet="/images/burger-exploded-guide-360.jpg" />
+              <img
+                className="block h-auto w-full rounded-[1.35rem] object-contain"
+                src="/images/burger-exploded-guide-640.jpg"
+                width="640"
+                height="853"
+                alt="Exploded double burger showing brioche buns, onions, tomatoes, cheddar cheese, lettuce, and premium beef patties"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
           </div>
           <span className="absolute -bottom-1 left-0 rounded-xl bg-[#f0008f] px-4 py-2 text-base font-black uppercase text-white shadow-xl sm:left-1 sm:px-5 sm:py-3 sm:text-lg">Fresh. Fast. Fire.</span>
         </div>
