@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 const SESSION_ID_KEY = "90s_burger_session_id";
 const SESSION_LAST_SEEN_KEY = "90s_burger_session_last_seen";
 const SESSION_STARTED_AT_KEY = "90s_burger_session_started_at";
+const LAST_TRACKED_PAGE_KEY = "90s_burger_last_tracked_page";
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 type MetaEvent = 'ViewContent' | 'AddToCart' | 'InitiateCheckout' | 'Purchase';
@@ -59,9 +60,15 @@ const generateSessionId = () => {
 
 const recordSession = async (payload: SessionTrackingPayload) => {
   try {
-    const { error } = await supabase
-      .from("analytics_sessions")
-      .upsert(payload, { onConflict: "session_id" });
+    const { error } = await supabase.rpc("record_analytics_session", {
+      p_session_id: payload.session_id,
+      p_user_id: payload.user_id ?? null,
+      p_started_at: payload.started_at,
+      p_last_seen_at: payload.last_seen_at || new Date().toISOString(),
+      p_path: payload.path ?? null,
+      p_referrer: payload.referrer ?? null,
+      p_user_agent: payload.user_agent ?? null,
+    });
 
     if (error) {
       console.warn("Analytics session insert failed", error.message);
@@ -107,6 +114,18 @@ const ensureSession = (options?: { userId?: string | null; path?: string }) => {
 
 export const trackSession = (options?: { userId?: string | null; path?: string }) => {
   ensureSession(options);
+};
+
+/** A reload or auth-state refresh on the same URL is not a new page view. */
+export const shouldTrackPageView = (path: string) => {
+  if (typeof window === "undefined") return false;
+  try {
+    const previousPath = window.sessionStorage.getItem(LAST_TRACKED_PAGE_KEY);
+    window.sessionStorage.setItem(LAST_TRACKED_PAGE_KEY, path);
+    return previousPath !== path;
+  } catch {
+    return true;
+  }
 };
 
 export const trackEvent = (

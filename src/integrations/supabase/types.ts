@@ -548,6 +548,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      record_analytics_session: {
+        Args: {
+          p_last_seen_at: string
+          p_path: string | null
+          p_referrer: string | null
+          p_session_id: string
+          p_started_at: string
+          p_user_agent: string | null
+          p_user_id: string | null
+        }
+        Returns: undefined
+      }
       delete_own_account: { Args: never; Returns: undefined }
       has_role: {
         Args: {
