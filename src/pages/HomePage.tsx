@@ -20,7 +20,7 @@ export default function HomePage() {
   return <MainLayout>
     <section className="relative overflow-hidden bg-[#0d0914] text-[#f8f5ff]">
       <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(#00c8f0_1px,transparent_1px)] [background-size:22px_22px]" />
-      <div className="container relative mx-auto grid min-h-[620px] items-center gap-10 px-4 py-16 lg:grid-cols-[1.05fr_.95fr] lg:py-24">
+      <div className="container relative mx-auto grid items-center gap-10 px-4 py-12 sm:min-h-[620px] sm:py-16 lg:grid-cols-[1.05fr_.95fr] lg:py-24">
         <div className="max-w-2xl">
           <h1 className="text-balance text-6xl font-black uppercase leading-[.88] tracking-[-.06em] sm:text-7xl lg:text-8xl">Big flavor.<br/><span className="text-[#f0008f]">90's attitude.</span></h1>
           <p className="mt-7 max-w-xl text-lg leading-relaxed text-[#f8f5ff]/70">Hot, juicy burgers stacked to order. Pick your favorite, load the extras, and we'll bring the good stuff to your door.</p>
@@ -34,11 +34,10 @@ export default function HomePage() {
             <span className="flex items-center gap-2"><MapPin className="text-[#00c8f0]"/> Alexandria</span>
           </div>
         </div>
-        <div className="relative mx-auto w-full max-w-[27rem] px-3 py-4 sm:px-5">
+        <div className="relative mx-auto hidden w-full max-w-[27rem] px-3 py-4 sm:block sm:px-5">
           <div className="absolute inset-[8%] -z-0 rounded-[3rem] bg-[#00c8f0]/35 blur-3xl" aria-hidden="true" />
           <div className="relative overflow-hidden rounded-[2rem] border border-[#00c8f0]/45 bg-[#fbf8ff] p-2 shadow-[0_32px_80px_-30px_rgba(0,0,0,.85)] sm:p-3">
             <picture>
-              <source media="(max-width: 639px)" srcSet="/images/burger-exploded-guide-360.jpg" />
               <img
                 className="block h-auto w-full rounded-[1.35rem] object-contain"
                 src="/images/burger-exploded-guide-640.jpg"
