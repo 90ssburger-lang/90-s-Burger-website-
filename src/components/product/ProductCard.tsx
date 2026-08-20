@@ -13,10 +13,10 @@ export function ProductCard({ product }: { product: Product; featured?: boolean 
       {product.is_featured && <span className="absolute left-2 top-2 rounded-full bg-[#00c8f0] px-2 py-1 text-[10px] font-black uppercase sm:left-3 sm:top-3 sm:px-3 sm:text-xs">Fan favorite</span>}
     </Link>
     <div className="flex flex-1 flex-col p-3 sm:p-5">
-      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#f0008f]">{product.category?.name || '90’s Burger'}</p>
+      <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a80062]">{product.category?.name || '90’s Burger'}</p>
       <Link to={`/product/${product.slug}`}><h3 className="mt-2 text-base font-black uppercase leading-tight sm:text-xl">{product.name}</h3></Link>
       <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-relaxed text-muted-foreground">{product.description || 'Freshly made with premium ingredients and our signature sauce.'}</p>
-      <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between"><span className="whitespace-nowrap text-base font-black sm:text-lg">{formatCurrency(product.price)}</span><Button onClick={() => addItem(product)} disabled={product.stock === 0} size="sm" className="w-full rounded-full bg-[#f0008f] px-3 text-white hover:bg-[#c60076] sm:w-auto sm:px-4"><Plus className="h-4 w-4"/> Add<span className="hidden lg:inline"> to Cart</span></Button></div>
+      <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between"><span className="whitespace-nowrap text-base font-black sm:text-lg">{formatCurrency(product.price)}</span><Button aria-label={`Add ${product.name} to cart`} onClick={() => addItem(product)} disabled={product.stock === 0} size="sm" className="w-full rounded-full bg-[#a80062] px-3 text-white hover:bg-[#85004d] sm:w-auto sm:px-4"><Plus className="h-4 w-4" aria-hidden="true"/> Add<span className="hidden lg:inline"> to Cart</span></Button></div>
     </div>
   </article>;
 }

@@ -57,7 +57,7 @@ export default function HomePage() {
 
     <section className="bg-[#f8f5ff] py-16">
       <div className="container mx-auto px-4">
-        <p className="text-sm font-bold uppercase tracking-[.2em] text-[#f0008f]">Pick your mood</p>
+        <p className="text-sm font-bold uppercase tracking-[.2em] text-[#a80062]">Pick your mood</p>
         <h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">The menu</h2>
         <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {categories.map(c => <Link key={c.slug} to={`/shop?category=${c.slug}`} className="group rounded-3xl border-2 border-[#0d0914]/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#f0008f] hover:shadow-xl">
@@ -69,7 +69,7 @@ export default function HomePage() {
 
     <section className="py-16 sm:py-20">
       <div className="container mx-auto px-4">
-        <div className="mb-8 flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-[.2em] text-[#f0008f]">Crowd favorites</p><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Most wanted</h2></div><Link to="/shop" className="hidden font-bold sm:flex">Full menu <ArrowRight className="ml-2"/></Link></div>
+        <div className="mb-8 flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-[.2em] text-[#a80062]">Crowd favorites</p><h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">Most wanted</h2></div><Link to="/shop" className="hidden font-bold sm:flex">Full menu <ArrowRight className="ml-2"/></Link></div>
         <ProductGrid products={products} loading={isLoading} />
       </div>
     </section>
