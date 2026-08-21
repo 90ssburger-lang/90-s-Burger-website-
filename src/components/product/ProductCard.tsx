@@ -5,11 +5,35 @@ import { formatCurrency } from '@/lib/utils';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 
-export function ProductCard({ product }: { product: Product; featured?: boolean }) {
+function productImageUrl(source: string, width: number) {
+  if (!source.includes('images.unsplash.com')) return source;
+
+  const url = new URL(source);
+  url.searchParams.set('auto', 'format');
+  url.searchParams.set('fit', 'crop');
+  url.searchParams.set('w', String(width));
+  url.searchParams.set('q', '75');
+  return url.toString();
+}
+
+export function ProductCard({ product, priority = false }: { product: Product; featured?: boolean; priority?: boolean }) {
   const { addItem } = useCart();
+  const image = product.image_url || product.images?.[0] || '/placeholder.svg';
+  const isUnsplashImage = image.includes('images.unsplash.com');
   return <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
     <Link to={`/product/${product.slug}`} className="relative block aspect-[4/3] overflow-hidden bg-[#f8f5ff]">
-      <img src={product.image_url || product.images?.[0] || '/placeholder.svg'} alt={product.name} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+      <img
+        src={productImageUrl(image, 480)}
+        srcSet={isUnsplashImage ? `${productImageUrl(image, 320)} 320w, ${productImageUrl(image, 480)} 480w, ${productImageUrl(image, 640)} 640w` : undefined}
+        sizes="(max-width: 639px) 50vw, (max-width: 767px) 50vw, (max-width: 1279px) 33vw, 25vw"
+        alt={product.name}
+        width="640"
+        height="480"
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
+        decoding="async"
+        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+      />
       {product.is_featured && <span className="absolute left-2 top-2 rounded-full bg-[#00c8f0] px-2 py-1 text-[10px] font-black uppercase sm:left-3 sm:top-3 sm:px-3 sm:text-xs">Fan favorite</span>}
     </Link>
     <div className="flex flex-1 flex-col p-3 sm:p-5">
