@@ -37,13 +37,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus, ChefHat } from 'lucide-react';
+import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus, ChefHat, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { OrderStatus } from '@/types';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { openInvoicePdf } from '@/lib/invoice';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  buildOrdersCsv,
+  downloadOrdersCsv,
+  getOrderExportRange,
+  type ExportOrder,
+  type OrderExportPeriod,
+} from '@/lib/ordersCsv';
 
 const statusColors: Record<OrderStatus, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -113,6 +121,11 @@ export default function AdminOrdersPage() {
   const [processingOrderId, setProcessingOrderId] = useState<string | null>(null);
   const [selectedConfirmer, setSelectedConfirmer] = useState('');
   const [newConfirmer, setNewConfirmer] = useState('');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportPeriod, setExportPeriod] = useState<OrderExportPeriod>('today');
+  const [fromMonth, setFromMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [toMonth, setToMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleStatusChange = (orderId: string, status: OrderStatus) => {
     updateStatus.mutate({ id: orderId, status });
@@ -159,8 +172,36 @@ export default function AdminOrdersPage() {
   const handlePrintInvoice = async (orderId: string) => {
     try {
       await openInvoicePdf(orderId, session?.access_token);
-    } catch (error: any) {
-      toast.error(error?.message || 'Failed to open invoice.');
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Failed to open invoice.');
+    }
+  };
+
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      const range = getOrderExportRange(exportPeriod, new Date(), fromMonth, toMonth);
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, order_items(*)')
+        .gte('created_at', range.start.toISOString())
+        .lte('created_at', range.end.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      const exportOrders = (data || []).map((order) => ({
+        ...order,
+        shipping_address: order.shipping_address as ExportOrder['shipping_address'],
+        billing_address: order.billing_address as ExportOrder['billing_address'],
+        items: order.order_items || [],
+      })) as unknown as ExportOrder[];
+      downloadOrdersCsv(buildOrdersCsv(exportOrders, range), range);
+      setExportDialogOpen(false);
+      toast.success(`Exported ${exportOrders.length} orders.`);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : 'Could not export orders.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -173,7 +214,12 @@ export default function AdminOrdersPage() {
             <h1 className="font-display text-2xl font-bold">Orders</h1>
             <p className="text-muted-foreground">Manage customer orders</p>
           </div>
-          <Button onClick={() => navigate('/admin/orders/new')}><Plus className="mr-2 h-4 w-4" />Create order</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setExportDialogOpen(true)}>
+              <Download className="mr-2 h-4 w-4" />Export CSV
+            </Button>
+            <Button onClick={() => navigate('/admin/orders/new')}><Plus className="mr-2 h-4 w-4" />Create order</Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -338,6 +384,52 @@ export default function AdminOrdersPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Export orders to CSV</DialogTitle>
+              <DialogDescription>
+                Download an Excel-friendly report with period totals, revenue, customer information, and every order item.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="export-period">Order period</Label>
+                <Select value={exportPeriod} onValueChange={(value) => setExportPeriod(value as OrderExportPeriod)}>
+                  <SelectTrigger id="export-period"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Today's orders</SelectItem>
+                    <SelectItem value="week">This week's orders</SelectItem>
+                    <SelectItem value="month">This month's orders</SelectItem>
+                    <SelectItem value="custom">Select multiple months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {exportPeriod === 'custom' && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="export-from-month">First month</Label>
+                    <Input id="export-from-month" type="month" value={fromMonth} onChange={(event) => setFromMonth(event.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="export-to-month">Last month</Label>
+                    <Input id="export-to-month" type="month" value={toMonth} onChange={(event) => setToMonth(event.target.value)} />
+                  </div>
+                </div>
+              )}
+              <div className="rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+                Revenue excludes cancelled orders. Paid revenue and cancelled value are shown separately in the summary.
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setExportDialogOpen(false)} disabled={isExporting}>Cancel</Button>
+              <Button onClick={handleExportCsv} disabled={isExporting}>
+                <Download className="mr-2 h-4 w-4" />{isExporting ? 'Preparing…' : 'Download CSV'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
           <DialogContent>
