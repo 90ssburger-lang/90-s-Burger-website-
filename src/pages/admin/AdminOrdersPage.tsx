@@ -40,11 +40,11 @@ import {
 import { MoreHorizontal, Package, Truck, CheckCircle, XCircle, Clock, Plus, ChefHat, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
-import { OrderStatus } from '@/types';
+import { Order, OrderStatus } from '@/types';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
-import { openInvoicePdf } from '@/lib/invoice';
 import { supabase } from '@/integrations/supabase/client';
+import { printReceipt } from '@/lib/receipt';
+import { OrderInvoiceDetails } from '@/components/orders/OrderInvoiceDetails';
 import {
   buildOrdersCsv,
   downloadOrdersCsv,
@@ -109,7 +109,6 @@ const extractConfirmedBy = (notes: string | null) => {
 
 export default function AdminOrdersPage() {
   const navigate = useNavigate();
-  const { session } = useAuth();
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const { data: orders = [], isLoading } = useOrders(
     statusFilter !== 'all' ? { status: statusFilter } : undefined
@@ -126,6 +125,8 @@ export default function AdminOrdersPage() {
   const [fromMonth, setFromMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [toMonth, setToMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [isExporting, setIsExporting] = useState(false);
+  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   const handleStatusChange = (orderId: string, status: OrderStatus) => {
     updateStatus.mutate({ id: orderId, status });
@@ -169,11 +170,45 @@ export default function AdminOrdersPage() {
     setProcessingOrderId(null);
   };
 
-  const handlePrintInvoice = async (orderId: string) => {
+  const handlePrintReceipt = async (orderId: string) => {
+    const receiptWindow = window.open('', '_blank', 'width=420,height=720');
     try {
-      await openInvoicePdf(orderId, session?.access_token);
+      if (!receiptWindow) throw new Error('Allow pop-ups to print the receipt.');
+      const order = orders.find((candidate) => candidate.id === orderId);
+      if (!order) throw new Error('Order not found.');
+
+      const { data: items, error } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderId);
+
+      if (error) throw error;
+      printReceipt({ ...order, items: items || [] }, receiptWindow);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : 'Failed to open invoice.');
+      receiptWindow?.close();
+      toast.error(error instanceof Error ? error.message : 'Failed to print receipt.');
+    }
+  };
+
+  const handleViewDetails = async (orderId: string) => {
+    const order = orders.find((candidate) => candidate.id === orderId);
+    if (!order) return toast.error('Order not found.');
+
+    setDetailsOrder({ ...order, items: [] });
+    setDetailsLoading(true);
+    try {
+      const { data: items, error } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderId);
+
+      if (error) throw error;
+      setDetailsOrder({ ...order, items: items || [] });
+    } catch (error: unknown) {
+      setDetailsOrder(null);
+      toast.error(error instanceof Error ? error.message : 'Failed to load order details.');
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -324,11 +359,11 @@ export default function AdminOrdersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => navigate(`/admin/orders/${order.id}`)}>
+                          <DropdownMenuItem onSelect={() => handleViewDetails(order.id)}>
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handlePrintInvoice(order.id)}>
-                            Print Invoice
+                          <DropdownMenuItem onSelect={() => handlePrintReceipt(order.id)}>
+                            Print Receipt
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onSelect={() => sendToKitchen.mutate(order.id)} disabled={Boolean(order.sent_to_kitchen_at)}>
@@ -384,6 +419,32 @@ export default function AdminOrdersPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog
+          open={Boolean(detailsOrder)}
+          onOpenChange={(open) => {
+            if (!open) setDetailsOrder(null);
+          }}
+        >
+          <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Order Details</DialogTitle>
+              <DialogDescription>
+                {detailsOrder ? `Order #${detailsOrder.id.slice(0, 8).toUpperCase()}` : ''}
+              </DialogDescription>
+            </DialogHeader>
+            {detailsLoading ? (
+              <div className="py-12 text-center text-muted-foreground">Loading order details...</div>
+            ) : detailsOrder ? (
+              <>
+                <div className="flex justify-end">
+                  <Button onClick={() => printReceipt(detailsOrder)}>Print Receipt</Button>
+                </div>
+                <OrderInvoiceDetails order={detailsOrder} />
+              </>
+            ) : null}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
           <DialogContent>

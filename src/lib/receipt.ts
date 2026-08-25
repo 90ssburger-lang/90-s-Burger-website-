@@ -10,8 +10,8 @@ const escapeHtml = (value: unknown) =>
 
 const money = (value: unknown) => `${Number(value || 0).toFixed(2)} L.E.`;
 
-export function printReceipt(order: Order) {
-  const receiptWindow = window.open('', '_blank', 'width=420,height=720');
+export function printReceipt(order: Order, targetWindow?: Window | null) {
+  const receiptWindow = targetWindow || window.open('', '_blank', 'width=420,height=720');
   if (!receiptWindow) throw new Error('Allow pop-ups to print the receipt.');
 
   const address = order.shipping_address;
