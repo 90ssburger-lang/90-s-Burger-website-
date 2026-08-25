@@ -10,9 +10,21 @@ const escapeHtml = (value: unknown) =>
 
 const money = (value: unknown) => `${Number(value || 0).toFixed(2)} L.E.`;
 
-export function printReceipt(order: Order, targetWindow?: Window | null) {
-  const receiptWindow = targetWindow || window.open('', '_blank', 'width=420,height=720');
-  if (!receiptWindow) throw new Error('Allow pop-ups to print the receipt.');
+export function printReceipt(order: Order) {
+  const receiptFrame = document.createElement('iframe');
+  receiptFrame.setAttribute('aria-hidden', 'true');
+  receiptFrame.style.position = 'fixed';
+  receiptFrame.style.width = '0';
+  receiptFrame.style.height = '0';
+  receiptFrame.style.border = '0';
+  receiptFrame.style.visibility = 'hidden';
+  document.body.appendChild(receiptFrame);
+
+  const receiptWindow = receiptFrame.contentWindow;
+  if (!receiptWindow) {
+    receiptFrame.remove();
+    throw new Error('Could not prepare the receipt for printing.');
+  }
 
   const address = order.shipping_address;
   const addressText = address
@@ -81,7 +93,14 @@ export function printReceipt(order: Order, targetWindow?: Window | null) {
   <div class="rule"></div>
   <p class="center">Thank you!</p>
   <p class="center muted">90's Burger</p>
-<script>window.addEventListener('load', function () { window.print(); });<\/script>
 </body></html>`);
   receiptWindow.document.close();
+
+  const removeFrame = () => receiptFrame.remove();
+  receiptWindow.addEventListener('afterprint', removeFrame, { once: true });
+  window.setTimeout(() => {
+    receiptWindow.focus();
+    receiptWindow.print();
+    window.setTimeout(removeFrame, 60_000);
+  }, 100);
 }

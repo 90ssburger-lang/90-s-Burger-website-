@@ -199,9 +199,7 @@ export default function AdminOrdersPage() {
   };
 
   const handlePrintReceipt = async (orderId: string) => {
-    const receiptWindow = window.open('', '_blank', 'width=420,height=720');
     try {
-      if (!receiptWindow) throw new Error('Allow pop-ups to print the receipt.');
       const order = orders.find((candidate) => candidate.id === orderId);
       if (!order) throw new Error('Order not found.');
 
@@ -211,9 +209,8 @@ export default function AdminOrdersPage() {
         .eq('order_id', orderId);
 
       if (error) throw error;
-      printReceipt({ ...order, items: items || [] }, receiptWindow);
+      printReceipt({ ...order, items: items || [] });
     } catch (error: unknown) {
-      receiptWindow?.close();
       toast.error(error instanceof Error ? error.message : 'Failed to print receipt.');
     }
   };
@@ -485,7 +482,25 @@ export default function AdminOrdersPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={() => printReceipt(detailsOrder)}>Print Receipt</Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={Boolean(detailsOrder.sent_to_kitchen_at) || sendToKitchen.isPending}
+                      onClick={() => {
+                        sendToKitchen.mutate(detailsOrder.id, {
+                          onSuccess: () => {
+                            setDetailsOrder((current) =>
+                              current ? { ...current, sent_to_kitchen_at: new Date().toISOString() } : current
+                            );
+                          },
+                        });
+                      }}
+                    >
+                      <ChefHat className="mr-2 h-4 w-4" />
+                      {detailsOrder.sent_to_kitchen_at ? 'Sent to Kitchen' : 'Send to Kitchen'}
+                    </Button>
+                    <Button onClick={() => printReceipt(detailsOrder)}>Print Receipt</Button>
+                  </div>
                 </div>
                 <OrderInvoiceDetails order={detailsOrder} />
               </>
