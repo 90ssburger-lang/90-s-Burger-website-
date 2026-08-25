@@ -7,6 +7,7 @@ import { useQrDataUrl } from "@/hooks/useQrCode";
 import { downloadInvoicePdf, openInvoicePdf, openInvoicePrintView } from "@/lib/invoice";
 import { OrderInvoiceDetails } from "@/components/orders/OrderInvoiceDetails";
 import { toast } from "sonner";
+import { printReceipt } from "@/lib/receipt";
 
 export default function AdminOrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +47,9 @@ export default function AdminOrderDetailsPage() {
             <h1 className="font-display text-2xl font-bold">Order Details</h1>
           </div>
           <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => order && printReceipt(order)} disabled={!order}>
+              Print Receipt
+            </Button>
             <Button variant="outline" onClick={handlePrint}>
               Print Invoice
             </Button>

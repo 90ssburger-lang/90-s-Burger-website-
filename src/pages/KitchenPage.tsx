@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import type { Address, Order, OrderStatus } from '@/types';
+import { printReceipt } from '@/lib/receipt';
 
 const allowed: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered'];
 
@@ -41,7 +42,7 @@ export default function KitchenPage() {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       {orders.isLoading ? <p>Loading orders…</p> : !orders.data?.length ? <p className="col-span-full rounded-xl border bg-card p-10 text-center text-muted-foreground">No orders have been sent to the kitchen.</p> : orders.data.map(order => <article key={order.id} className="rounded-xl border bg-card p-5"><div className="flex justify-between"><div><p className="font-mono text-sm">#{order.id.slice(0,8).toUpperCase()}</p><p className="mt-1 font-semibold">{order.customer_name || 'Guest'}</p></div><span className="text-sm font-bold">{order.total.toFixed(2)} L.E.</span></div><p className="mt-3 text-sm text-muted-foreground">{order.shipping_address?.phone || order.customer_email}</p><div className="mt-4"><Label>Status</Label><Select value={order.status} onValueChange={status => update.mutate({ id: order.id, status: status as OrderStatus })}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent>{allowed.map(status => <SelectItem key={status} value={status}><span className="capitalize">{status}</span></SelectItem>)}</SelectContent></Select></div><Button className="mt-4 w-full" variant="outline" onClick={() => openDetails(order)}>Full order details</Button></article>)}
     </div>
-    <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto"><DialogHeader><DialogTitle>Kitchen order details</DialogTitle></DialogHeader>{selected && <OrderInvoiceDetails order={selected} />}</DialogContent></Dialog>
+    <Dialog open={!!selected} onOpenChange={open => !open && setSelected(null)}><DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto"><DialogHeader><DialogTitle>Kitchen order details</DialogTitle></DialogHeader>{selected && <><Button className="w-fit" onClick={() => printReceipt(selected)}>Print Receipt</Button><OrderInvoiceDetails order={selected} /></>}</DialogContent></Dialog>
   </div>;
   return isStaff ? <AdminLayout>{content}</AdminLayout> : <main className="min-h-screen bg-muted p-4 lg:p-8">{content}</main>;
 }
