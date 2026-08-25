@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Clock3, MapPin, Star } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -12,10 +13,22 @@ const categories = [
   { name: 'Drinks', slug: 'drinks', emoji: '🥤', copy: 'Ice-cold refreshment for every bite.' },
 ];
 
+function shuffleProducts<T>(items: T[]) {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+  }
+
+  return shuffled;
+}
+
 export default function HomePage() {
   const { data: featured = [], isLoading } = useProducts({ featured: true });
   const { data: all = [] } = useProducts({});
-  const products = featured.length ? featured.slice(0, 8) : all.slice(0, 8);
+  const productPool = featured.length ? featured : all;
+  const products = useMemo(() => shuffleProducts(productPool).slice(0, 8), [productPool]);
 
   return <MainLayout>
     <section className="relative overflow-hidden bg-[#0d0914] text-[#f8f5ff]">
