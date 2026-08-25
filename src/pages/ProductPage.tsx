@@ -2,25 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Check, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { useProduct } from '@/hooks/useProducts';
+import { useProduct, useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency } from '@/lib/utils';
 import { trackMetaEvent } from '@/lib/analytics';
 import { useProductAddons } from '@/hooks/useProductAddons';
-import type { ProductAddon } from '@/types';
+import type { Product, ProductAddon } from '@/types';
 
 export default function ProductPage(){
- const {slug=''}=useParams();const {data:product,isLoading}=useProduct(slug);const {data:addons=[]}=useProductAddons(product?.id);const {addItem}=useCart();const [qty,setQty]=useState(1);const [selected,setSelected]=useState<ProductAddon[]>([]);
+ const {slug=''}=useParams();const {data:product,isLoading}=useProduct(slug);const {data:addons=[]}=useProductAddons(product?.id);const {data:sideProducts=[]}=useProducts({categorySlug:'sides'});const {addItem}=useCart();const [qty,setQty]=useState(1);const [selected,setSelected]=useState<ProductAddon[]>([]);const [selectedSides,setSelectedSides]=useState<Product[]>([]);
  useEffect(()=>{if(product)trackMetaEvent('ViewContent',{content_ids:[product.id],content_name:product.name,value:product.price,currency:'EGP'})},[product?.id]);
- const extraTotal=useMemo(()=>selected.reduce((s,x)=>s+Number(x.price),0),[selected]);
+ const extraTotal=useMemo(()=>selected.reduce((s,x)=>s+Number(x.price),0)+selectedSides.reduce((s,x)=>s+Number(x.price),0),[selected,selectedSides]);
  if(isLoading)return <MainLayout><div className="container mx-auto grid gap-10 px-4 py-12 lg:grid-cols-2"><Skeleton className="aspect-square rounded-3xl"/><div className="space-y-5"><Skeleton className="h-14"/><Skeleton className="h-40"/></div></div></MainLayout>;
  if(!product)return <MainLayout><div className="py-24 text-center"><h1 className="text-3xl font-black">ITEM NOT FOUND</h1><Link to="/shop"><Button className="mt-5">Back to menu</Button></Link></div></MainLayout>;
  const toggle=(addon:ProductAddon)=>setSelected(v=>v.some(x=>x.id===addon.id)?v.filter(x=>x.id!==addon.id):[...v,addon]);
- const add=()=>{addItem(product,qty,selected);trackMetaEvent('AddToCart',{content_ids:[product.id],content_name:product.name,value:(product.price+extraTotal)*qty,currency:'EGP',num_items:qty})};
+ const toggleSide=(side:Product)=>setSelectedSides(v=>v.some(x=>x.id===side.id)?v.filter(x=>x.id!==side.id):[...v,side]);
+ const add=()=>{addItem(product,qty,selected);selectedSides.forEach(side=>addItem(side,qty));trackMetaEvent('AddToCart',{content_ids:[product.id,...selectedSides.map(side=>side.id)],content_name:product.name,value:(product.price+extraTotal)*qty,currency:'EGP',num_items:qty*(1+selectedSides.length)})};
  return <MainLayout><div className="container mx-auto px-4 py-8 sm:py-12"><Link to="/shop" className="text-sm font-bold text-muted-foreground">← Back to menu</Link><div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-16"><div className="overflow-hidden rounded-[2rem] bg-[#f8f5ff]"><img src={product.image_url||product.images?.[0]||'/placeholder.svg'} alt={product.name} className="aspect-square h-full w-full object-cover"/></div><div><p className="text-sm font-bold uppercase tracking-[.18em] text-[#f0008f]">{product.category?.name||'90’s Burger'}</p><h1 className="mt-2 text-4xl font-black uppercase leading-none sm:text-6xl">{product.name}</h1><p className="mt-4 text-2xl font-black">{formatCurrency(product.price)}</p><p className="mt-5 leading-relaxed text-muted-foreground">{product.description||'Made fresh to order with premium ingredients, our house sauce and a toasted bun.'}</p>
  {addons.length>0&&<div className="mt-8"><h2 className="text-lg font-black uppercase">Choose your sides &amp; extras</h2><div className="mt-3 grid grid-cols-2 gap-2">{addons.filter(x=>x.is_enabled).map(x=><button key={x.id} onClick={()=>toggle(x)} className={`flex items-center justify-between rounded-2xl border-2 p-3 text-left text-sm font-bold ${selected.some(a=>a.id===x.id)?'border-[#f0008f] bg-fuchsia-50':'border-black/10'}`}><span>{x.name}<small className="block font-normal text-muted-foreground">+{formatCurrency(Number(x.price))}</small></span>{selected.some(a=>a.id===x.id)&&<Check className="text-[#f0008f]"/>}</button>)}</div></div>}
+ {product.category?.slug!=='sides'&&sideProducts.length>0&&<div className="mt-8"><h2 className="text-lg font-black uppercase">Add a side</h2><div className="mt-3 grid grid-cols-2 gap-2">{sideProducts.map(side=><button key={side.id} type="button" onClick={()=>toggleSide(side)} className={`overflow-hidden rounded-2xl border-2 text-left text-sm font-bold ${selectedSides.some(x=>x.id===side.id)?'border-[#f0008f] bg-fuchsia-50':'border-black/10'}`}><img src={side.image_url||side.images?.[0]||'/placeholder.svg'} alt="" className="aspect-[2/1] w-full object-cover"/><span className="flex items-center justify-between gap-2 p-3"><span>{side.name}<small className="block font-normal text-muted-foreground">+{formatCurrency(Number(side.price))}</small></span>{selectedSides.some(x=>x.id===side.id)&&<Check className="shrink-0 text-[#f0008f]"/>}</span></button>)}</div></div>}
  <div className="mt-6 flex gap-3"><div className="flex items-center rounded-full border"><button className="p-3" onClick={()=>setQty(Math.max(1,qty-1))}><Minus/></button><span className="w-8 text-center font-bold">{qty}</span><button className="p-3" onClick={()=>setQty(qty+1)}><Plus/></button></div><Button onClick={add} disabled={product.stock===0} className="h-auto flex-1 rounded-full bg-[#f0008f] text-base text-white hover:bg-[#c60076]"><ShoppingBag/> Add · {formatCurrency((product.price+extraTotal)*qty)}</Button></div>
  </div></div></div></MainLayout>;
 }
