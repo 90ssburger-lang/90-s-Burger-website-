@@ -48,8 +48,8 @@ export function printReceipt(order: Order) {
 
   receiptWindow.document.write(`<!doctype html>
 <html><head><meta charset="utf-8"><title>Receipt #${escapeHtml(order.id.slice(0, 8))}</title>
-<style>
-  @page { size: 80mm auto; margin: 3mm; }
+<style id="receipt-page-size">
+  @page { size: 80mm 200mm; margin: 3mm; }
   * { box-sizing: border-box; }
   body { width: 74mm; margin: 0 auto; color: #000; background: #fff; font: 12px/1.35 Arial, sans-serif; }
   h1, p { margin: 0; }
@@ -99,6 +99,30 @@ export function printReceipt(order: Order) {
   const removeFrame = () => receiptFrame.remove();
   receiptWindow.addEventListener('afterprint', removeFrame, { once: true });
   window.setTimeout(() => {
+    // CSS paged media does not reliably support an automatic page height.
+    // Measure this receipt and set an exact 80 mm page with no long blank tail.
+    const contentHeightPx = receiptWindow.document.documentElement.scrollHeight;
+    const contentHeightMm = Math.ceil((contentHeightPx * 25.4) / 96 + 6);
+    const pageHeightMm = Math.max(80, contentHeightMm);
+    const pageSizeStyle = receiptWindow.document.getElementById('receipt-page-size');
+    if (pageSizeStyle) {
+      pageSizeStyle.textContent = `
+        @page { size: 80mm ${pageHeightMm}mm; margin: 3mm; }
+        * { box-sizing: border-box; }
+        body { width: 74mm; margin: 0 auto; color: #000; background: #fff; font: 12px/1.35 Arial, sans-serif; }
+        h1, p { margin: 0; }
+        .center { text-align: center; }
+        .brand { font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+        .muted { font-size: 10px; }
+        .rule { border-top: 1px dashed #000; margin: 8px 0; }
+        .row, .item-line { display: flex; justify-content: space-between; gap: 8px; }
+        .row span:first-child { color: #222; }
+        .item { margin: 7px 0; }
+        .item-name { font-weight: 700; overflow-wrap: anywhere; }
+        .total { font-size: 16px; font-weight: 900; }
+        .details { overflow-wrap: anywhere; }
+      `;
+    }
     receiptWindow.focus();
     receiptWindow.print();
     window.setTimeout(removeFrame, 60_000);
