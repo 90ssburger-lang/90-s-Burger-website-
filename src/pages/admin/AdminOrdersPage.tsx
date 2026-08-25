@@ -132,6 +132,23 @@ export default function AdminOrdersPage() {
     updateStatus.mutate({ id: orderId, status });
   };
 
+  const handlePopupStatusChange = (status: OrderStatus) => {
+    if (!detailsOrder || status === detailsOrder.status) return;
+    if (status === 'processing') {
+      openProcessingDialog(detailsOrder.id);
+      return;
+    }
+
+    updateStatus.mutate(
+      { id: detailsOrder.id, status },
+      {
+        onSuccess: () => {
+          setDetailsOrder((current) => current ? { ...current, status } : current);
+        },
+      }
+    );
+  };
+
   const openProcessingDialog = (orderId: string) => {
     setProcessingOrderId(orderId);
     setSelectedConfirmer('');
@@ -165,7 +182,18 @@ export default function AdminOrdersPage() {
     }
     const order = orders.find((o) => o.id === processingOrderId);
     const updatedNotes = buildConfirmationNote(order?.notes ?? null, selectedConfirmer);
-    updateStatus.mutate({ id: processingOrderId, status: 'processing', notes: updatedNotes });
+    updateStatus.mutate(
+      { id: processingOrderId, status: 'processing', notes: updatedNotes },
+      {
+        onSuccess: () => {
+          setDetailsOrder((current) =>
+            current?.id === processingOrderId
+              ? { ...current, status: 'processing', notes: updatedNotes }
+              : current
+          );
+        },
+      }
+    );
     setConfirmDialogOpen(false);
     setProcessingOrderId(null);
   };
@@ -437,7 +465,26 @@ export default function AdminOrdersPage() {
               <div className="py-12 text-center text-muted-foreground">Loading order details...</div>
             ) : detailsOrder ? (
               <>
-                <div className="flex justify-end">
+                <div className="flex flex-col gap-3 rounded-xl border bg-muted/30 p-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div className="w-full space-y-2 sm:max-w-xs">
+                    <Label htmlFor="popup-order-status">Update Status</Label>
+                    <Select
+                      value={detailsOrder.status}
+                      onValueChange={(value) => handlePopupStatusChange(value as OrderStatus)}
+                      disabled={updateStatus.isPending}
+                    >
+                      <SelectTrigger id="popup-order-status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <Button onClick={() => printReceipt(detailsOrder)}>Print Receipt</Button>
                 </div>
                 <OrderInvoiceDetails order={detailsOrder} />
