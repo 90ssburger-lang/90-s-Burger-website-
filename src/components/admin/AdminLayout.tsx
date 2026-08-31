@@ -20,7 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import logo from '@/assets/logo-neon.png';
+import logo from '@/assets/logo.png';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -82,10 +82,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-sidebar-border">
+          <div className="flex items-center justify-between min-h-20 px-4 border-b border-sidebar-border">
             <Link to="/admin" className="flex items-center gap-2">
-              <span className="font-black uppercase">90's Burger</span>
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+              <img src={logo} alt="90's Burger" className="h-12 w-12 rounded-xl object-cover" />
+              <span className="text-xs bg-accent text-accent-foreground px-2 py-1 rounded-full font-bold uppercase">
                 Admin
               </span>
             </Link>

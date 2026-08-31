@@ -43,7 +43,7 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
-const CHART_COLORS = ['#a855f7', '#eab308', '#22c55e', '#3b82f6', '#ef4444'];
+const CHART_COLORS = ['#055b36', '#ffb31a', '#c91c19', '#438a62', '#e4861b'];
 
 export default function AdminDashboardPage() {
   const { data: stats, isLoading: loadingStats } = useDashboardStats();

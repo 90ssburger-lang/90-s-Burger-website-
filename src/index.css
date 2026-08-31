@@ -4,55 +4,56 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 39 100% 96%;
+    --foreground: 151 88% 17%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 40 75% 98%;
+    --card-foreground: 151 88% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 40 75% 98%;
+    --popover-foreground: 151 88% 17%;
 
-    --primary: 324 100% 47%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 151 88% 17%;
+    --primary-foreground: 39 100% 96%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 40 100% 89%;
+    --secondary-foreground: 151 88% 17%;
 
-    --accent: 220 14% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 39 100% 55%;
+    --accent-foreground: 151 88% 17%;
 
-    --muted: 210 20% 98%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 40 55% 92%;
+    --muted-foreground: 151 28% 34%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 324 100% 47%;
+    --border: 38 31% 80%;
+    --input: 38 31% 80%;
+    --ring: 151 88% 17%;
 
-    --radius: 0.875rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 98%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-background: 151 88% 14%;
+    --sidebar-foreground: 39 100% 96%;
+    --sidebar-primary: 39 100% 55%;
+    --sidebar-primary-foreground: 151 88% 14%;
+    --sidebar-accent: 151 70% 21%;
+    --sidebar-accent-foreground: 39 100% 96%;
+    --sidebar-border: 151 45% 27%;
+    --sidebar-ring: 39 100% 55%;
 
     /* Brand palette tokens (update these to match your palette) */
-    --brand-paper: 43 100% 94%;
+    --brand-paper: 39 100% 96%;
     --brand-ink: var(--foreground);
     --brand-muted: var(--muted-foreground);
-    --brand-line: 220 12% 84%;
+    --brand-line: 38 31% 80%;
     --brand-accent: var(--primary);
     --brand-accent-foreground: var(--primary-foreground);
     --brand-accent-strong: var(--primary);
-    --brand-highlight: 190 100% 47%;
-    --brand-highlight-foreground: 222 47% 11%;
+    --brand-highlight: 39 100% 55%;
+    --brand-highlight-foreground: 151 88% 17%;
+    --brand-red: 1 79% 43%;
   }
 
   * {
@@ -60,8 +61,8 @@
   }
 
   body {
-    @apply bg-[#fbf8ff] text-foreground antialiased;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Arial Rounded MT Bold", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
     min-height: 100%;
     overflow-x: hidden;
   }
@@ -72,14 +73,14 @@
   h4,
   h5,
   h6 {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
     @apply font-semibold tracking-tight;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md;
+    @apply rounded-xl border border-border bg-card shadow-sm transition-shadow duration-200 hover:shadow-md;
   }
 
   .glass-panel {
@@ -476,3 +477,22 @@
     font-size: 12px;
   }
 }
+
+/* Legacy utility bridge: keeps every storefront and dashboard screen on the
+   cassette-burger palette while older component markup is phased out. */
+[class*="bg-[#0d0914]"] { background-color: #054f30 !important; }
+[class*="bg-[#fbf8ff]"],
+[class*="bg-[#f8f5ff]"] { background-color: #fff5df !important; }
+[class*="bg-[#f0008f]"],
+[class*="bg-[#a80062]"],
+[class*="bg-[#c60076]"] { background-color: #c91c19 !important; }
+[class*="bg-[#00c8f0]"] { background-color: #ffb31a !important; }
+[class*="text-[#f0008f]"],
+[class*="text-[#a80062]"],
+[class*="text-[#c60076]"] { color: #c91c19 !important; }
+[class*="text-[#00c8f0]"] { color: #ffb31a !important; }
+[class*="text-[#f8f5ff]"] { color: #fff5df !important; }
+[class*="border-[#f0008f]"],
+[class*="border-[#a80062]"] { border-color: #c91c19 !important; }
+[class*="border-[#00c8f0]"] { border-color: #ffb31a !important; }
+[class*="fill-[#00c8f0]"] { fill: #ffb31a !important; }

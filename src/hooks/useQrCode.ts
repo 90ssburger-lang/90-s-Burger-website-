@@ -6,8 +6,8 @@ const DEFAULT_OPTIONS: QRCodeToDataURLOptions = {
   margin: 1,
   width: 180,
   color: {
-    dark: "#4c1d95",
-    light: "#ffffff",
+    dark: "#055b36",
+    light: "#fff5df",
   },
 };
 
