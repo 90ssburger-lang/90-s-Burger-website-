@@ -267,6 +267,19 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     updateColors(colors.filter((color) => color !== value));
   };
 
+  const updatePattyOption = (name: 'Double' | 'Triple', updates: Partial<AddonRow>) => {
+    setAddonRows((current) => {
+      const index = current.findIndex((row) => row.name.toLowerCase() === name.toLowerCase());
+      if (index === -1) {
+        return [...current, { name, price: 0, is_enabled: false, ...updates }];
+      }
+      return current.map((row, rowIndex) => rowIndex === index ? { ...row, ...updates, name } : row);
+    });
+  };
+
+  const getPattyOption = (name: 'Double' | 'Triple') =>
+    addonRows.find((row) => row.name.toLowerCase() === name.toLowerCase());
+
   const isSubmitting = createProduct.isPending || updateProduct.isPending || replaceAddons.isPending;
 
   return (
@@ -440,53 +453,47 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         )}
       </div>
 
-      {/* Colors */}
-      <div className="space-y-2">
-        <Label htmlFor="colors">Available Colors</Label>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Input
-            id="colors"
-            placeholder="Add colors (e.g. #111111, #facc15, purple)"
-            value={colorInput}
-            onChange={(event) => setColorInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                handleAddColor();
-              }
-            }}
-          />
-          <Button type="button" variant="outline" onClick={handleAddColor}>
-            Add
-          </Button>
+      {/* Burger patty options */}
+      <div className="space-y-4 rounded-xl border border-border p-4">
+        <div>
+          <h3 className="font-display font-semibold">Burger patty options</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Optionally let customers upgrade this burger to Double or Triple. Enter only the extra charge.
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Use hex values or CSS color names. Separate multiple colors with commas.
-        </p>
-        {colors.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {colors.map((color) => (
-              <div
-                key={color}
-                className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs"
-              >
-                <span
-                  className="h-4 w-4 rounded-full border border-gray-200"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-gray-700">{color}</span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveColor(color)}
-                  className="text-gray-400 hover:text-gray-700"
-                  aria-label={`Remove ${color}`}
-                >
-                  x
-                </button>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(['Double', 'Triple'] as const).map((name) => {
+            const option = getPattyOption(name);
+            const enabled = option?.is_enabled ?? false;
+            return (
+              <div key={name} className="rounded-xl border border-border bg-muted/30 p-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id={`patty-${name.toLowerCase()}`}
+                    checked={enabled}
+                    onCheckedChange={(checked) => updatePattyOption(name, { is_enabled: !!checked })}
+                  />
+                  <Label htmlFor={`patty-${name.toLowerCase()}`} className="cursor-pointer text-base font-semibold">
+                    Allow {name}
+                  </Label>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor={`patty-${name.toLowerCase()}-price`}>Extra price (L.E.)</Label>
+                  <Input
+                    id={`patty-${name.toLowerCase()}-price`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={option?.price ?? 0}
+                    disabled={!enabled}
+                    onChange={(event) => updatePattyOption(name, { price: Math.max(0, Number(event.target.value)) })}
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
       {/* Category & Stock */}
@@ -537,13 +544,13 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         </div>
         <p className="text-sm text-muted-foreground">Add fries, drinks, sauces, cheese, or any extra customers can choose with this item.</p>
         <div className="grid gap-3">
-          {addonRows.map((row,index) => <div key={index} className="grid items-center gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_150px_auto_auto]">
+          {addonRows.map((row,index) => ['double', 'triple'].includes(row.name.toLowerCase()) ? null : <div key={index} className="grid items-center gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_150px_auto_auto]">
             <Input value={row.name} onChange={e=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,name:e.target.value}:a))} placeholder="e.g. Loaded fries" />
             <Input type="number" min="0" step="0.01" value={row.price} onChange={e=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,price:Math.max(0,Number(e.target.value))}:a))} placeholder="Price" />
             <div className="flex items-center gap-2"><Checkbox checked={row.is_enabled} onCheckedChange={()=>setAddonRows(v=>v.map((a,i)=>i===index?{...a,is_enabled:!a.is_enabled}:a))}/><span className="text-sm">Enabled</span></div>
             <Button type="button" variant="ghost" size="icon" onClick={()=>setAddonRows(v=>v.filter((_,i)=>i!==index))} aria-label="Remove add-on"><Trash2 className="text-destructive"/></Button>
           </div>)}
-          {!addonRows.length&&<p className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">No add-ons yet.</p>}
+          {!addonRows.some((row) => !['double', 'triple'].includes(row.name.toLowerCase()))&&<p className="rounded-lg bg-muted p-4 text-center text-sm text-muted-foreground">No add-ons yet.</p>}
         </div>
       </div>
 

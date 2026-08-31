@@ -18,7 +18,11 @@ export default function ProductPage(){
  const sidesTotal=useMemo(()=>sideProducts.reduce((sum,side)=>sum+Number(side.price)*(sideQuantities[side.id]||0),0),[sideProducts,sideQuantities]);
  if(isLoading)return <MainLayout><div className="container mx-auto grid gap-10 px-4 py-12 lg:grid-cols-2"><Skeleton className="aspect-square rounded-3xl"/><div className="space-y-5"><Skeleton className="h-14"/><Skeleton className="h-40"/></div></div></MainLayout>;
  if(!product)return <MainLayout><div className="py-24 text-center"><h1 className="text-3xl font-black">ITEM NOT FOUND</h1><Link to="/shop"><Button className="mt-5">Back to menu</Button></Link></div></MainLayout>;
- const toggle=(addon:ProductAddon)=>setSelected(v=>v.some(x=>x.id===addon.id)?v.filter(x=>x.id!==addon.id):[...v,addon]);
+ const toggle=(addon:ProductAddon)=>setSelected(v=>{
+  if(v.some(x=>x.id===addon.id))return v.filter(x=>x.id!==addon.id);
+  const isPattyOption=['double','triple'].includes(addon.name.toLowerCase());
+  return isPattyOption?[...v.filter(x=>!['double','triple'].includes(x.name.toLowerCase())),addon]:[...v,addon];
+ });
  const changeSideQuantity=(sideId:string,change:number)=>setSideQuantities(current=>({...current,[sideId]:Math.max(0,(current[sideId]||0)+change)}));
  const selectedSides=sideProducts.filter(side=>(sideQuantities[side.id]||0)>0);
  const add=()=>{addItem(product,qty,selected);selectedSides.forEach(side=>addItem(side,sideQuantities[side.id]));trackMetaEvent('AddToCart',{content_ids:[product.id,...selectedSides.map(side=>side.id)],content_name:product.name,value:(product.price+addonsTotal)*qty+sidesTotal,currency:'EGP',num_items:qty+selectedSides.reduce((sum,side)=>sum+sideQuantities[side.id],0)})};
