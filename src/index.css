@@ -5,13 +5,13 @@
 @layer base {
   :root {
     --background: 39 100% 96%;
-    --foreground: 151 88% 17%;
+    --foreground: 155 30% 15%;
 
     --card: 40 75% 98%;
-    --card-foreground: 151 88% 17%;
+    --card-foreground: 155 30% 15%;
 
     --popover: 40 75% 98%;
-    --popover-foreground: 151 88% 17%;
+    --popover-foreground: 155 30% 15%;
 
     --primary: 151 88% 17%;
     --primary-foreground: 39 100% 96%;
@@ -23,7 +23,7 @@
     --accent-foreground: 151 88% 17%;
 
     --muted: 40 55% 92%;
-    --muted-foreground: 151 28% 34%;
+    --muted-foreground: 155 13% 38%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -62,7 +62,9 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Arial Rounded MT Bold", "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+    font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
     min-height: 100%;
     overflow-x: hidden;
   }
@@ -73,8 +75,10 @@
   h4,
   h5,
   h6 {
-    font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
-    @apply font-semibold tracking-tight;
+    font-family: "Trebuchet MS", Inter, "Segoe UI", sans-serif;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -480,19 +484,19 @@
 
 /* Legacy utility bridge: keeps every storefront and dashboard screen on the
    cassette-burger palette while older component markup is phased out. */
-[class*="bg-[#0d0914]"] { background-color: #054f30 !important; }
-[class*="bg-[#fbf8ff]"],
-[class*="bg-[#f8f5ff]"] { background-color: #fff5df !important; }
-[class*="bg-[#f0008f]"],
-[class*="bg-[#a80062]"],
-[class*="bg-[#c60076]"] { background-color: #c91c19 !important; }
-[class*="bg-[#00c8f0]"] { background-color: #ffb31a !important; }
-[class*="text-[#f0008f]"],
-[class*="text-[#a80062]"],
-[class*="text-[#c60076]"] { color: #c91c19 !important; }
-[class*="text-[#00c8f0]"] { color: #ffb31a !important; }
-[class*="text-[#f8f5ff]"] { color: #fff5df !important; }
-[class*="border-[#f0008f]"],
-[class*="border-[#a80062]"] { border-color: #c91c19 !important; }
-[class*="border-[#00c8f0]"] { border-color: #ffb31a !important; }
-[class*="fill-[#00c8f0]"] { fill: #ffb31a !important; }
+[class~="bg-[#0d0914]"] { background-color: #054f30 !important; }
+[class~="bg-[#fbf8ff]"],
+[class~="bg-[#f8f5ff]"] { background-color: #fff5df !important; }
+[class~="bg-[#f0008f]"],
+[class~="bg-[#a80062]"],
+[class~="bg-[#c60076]"] { background-color: #c91c19 !important; }
+[class~="bg-[#00c8f0]"] { background-color: #ffb31a !important; }
+[class~="text-[#f0008f]"],
+[class~="text-[#a80062]"],
+[class~="text-[#c60076]"] { color: #c91c19 !important; }
+[class~="text-[#00c8f0]"] { color: #ffb31a !important; }
+[class~="text-[#f8f5ff]"] { color: #fff5df !important; }
+[class~="border-[#f0008f]"],
+[class~="border-[#a80062]"] { border-color: #c91c19 !important; }
+[class~="border-[#00c8f0]"] { border-color: #ffb31a !important; }
+[class~="fill-[#00c8f0]"] { fill: #ffb31a !important; }

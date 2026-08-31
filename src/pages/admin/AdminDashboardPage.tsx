@@ -82,7 +82,7 @@ export default function AdminDashboardPage() {
     <AdminLayout>
       <div className="space-y-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-5">
           <StatCard
             title="Total Revenue"
             value={loadingStats ? '...' : formatCurrency(stats?.totalRevenue ?? 0)}

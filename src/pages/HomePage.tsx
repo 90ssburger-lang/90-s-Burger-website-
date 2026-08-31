@@ -35,7 +35,7 @@ export default function HomePage() {
       <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(#00c8f0_1px,transparent_1px)] [background-size:22px_22px]" />
       <div className="container relative mx-auto grid items-center gap-10 px-4 py-12 sm:min-h-[620px] sm:py-16 lg:grid-cols-[1.05fr_.95fr] lg:py-24">
         <div className="max-w-2xl">
-          <h1 className="text-balance text-6xl font-black uppercase leading-[.88] tracking-[-.06em] sm:text-7xl lg:text-8xl">Big flavor.<br/><span className="text-[#f0008f]">90's attitude.</span></h1>
+          <h1 className="text-balance text-5xl font-black uppercase leading-[1.02] tracking-[-.035em] sm:text-6xl lg:text-7xl">Big flavor.<br/><span className="text-[#f0008f]">90's attitude.</span></h1>
           <p className="mt-7 max-w-xl text-lg leading-relaxed text-[#f8f5ff]/70">Hot, juicy burgers stacked to order. Pick your favorite, load the extras, and we'll bring the good stuff to your door.</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/shop"><Button size="lg" className="h-14 rounded-full bg-[#f0008f] px-8 text-base text-white hover:bg-[#c60076]">Order now <ArrowRight /></Button></Link>
@@ -71,9 +71,9 @@ export default function HomePage() {
       <div className="container mx-auto px-4">
         <p className="text-sm font-bold uppercase tracking-[.2em] text-[#a80062]">Pick your mood</p>
         <h2 className="mt-2 text-4xl font-black uppercase sm:text-5xl">The menu</h2>
-        <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {categories.map(c => <Link key={c.slug} to={`/shop?category=${c.slug}`} className="group rounded-3xl border-2 border-[#0d0914]/10 bg-white p-5 transition hover:-translate-y-1 hover:border-[#f0008f] hover:shadow-xl">
-            <div className="text-5xl transition group-hover:scale-110">{c.emoji}</div><h3 className="mt-5 text-xl font-black uppercase">{c.name}</h3><p className="mt-2 text-sm text-muted-foreground">{c.copy}</p>
+        <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {categories.map(c => <Link key={c.slug} to={`/shop?category=${c.slug}`} className="group rounded-3xl border border-primary/15 bg-card p-7 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-primary/35 hover:shadow-lg">
+            <div className="text-5xl transition group-hover:scale-105">{c.emoji}</div><h3 className="mt-6 text-xl font-extrabold leading-snug tracking-normal text-foreground">{c.name}</h3><p className="mt-3 text-base leading-relaxed text-muted-foreground">{c.copy}</p>
           </Link>)}
         </div>
       </div>
